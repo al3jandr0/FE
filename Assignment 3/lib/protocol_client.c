@@ -366,7 +366,7 @@ do_leave_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
 // Assigment 3 rpc
 static int
-get_numhome_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
+do_numhome_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 {
     int rc;
     Proto_Session *s;
@@ -385,10 +385,10 @@ get_numhome_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_int(s, 0, *rc) < 0)
+        if(proto_session_body_unmarshall_int(s, 0, &rc) < 0)
         {
             fprintf(stderr, "do_numhome_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_numhome_rpc: unmarshalled response rc = %d \n", rc);
         }
 
@@ -401,7 +401,7 @@ get_numhome_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 }
 
 static int
-proto_client_numfloor(Proto_Client_Handle ch, Proto_Msg_Types mt)
+do_numfloor_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 {
     int rc;
     Proto_Session *s;
@@ -415,10 +415,10 @@ proto_client_numfloor(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_int(s, 0, *rc) < 0)
+        if(proto_session_body_unmarshall_int(s, 0, &rc) < 0)
         {
             fprintf(stderr, "do_numfloor_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_numfloor_rpc: unmarshalled response rc = %d \n", rc);
         }
     }
@@ -430,7 +430,7 @@ proto_client_numfloor(Proto_Client_Handle ch, Proto_Msg_Types mt)
 }
 
 static int
-get_numjail_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
+do_numjail_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 {
     int rc;
     Proto_Session *s;
@@ -449,10 +449,10 @@ get_numjail_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_int(s, 0, *rc) < 0)
+        if(proto_session_body_unmarshall_int(s, 0, &rc) < 0)
         {
             fprintf(stderr, "do_numjail_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_numjail_rpc: unmarshalled response rc = %d \n", rc);
         }
     }
@@ -464,7 +464,7 @@ get_numjail_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int data)
 }
 
 static int
-get_numwall_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
+do_numwall_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 {
     int rc;
     Proto_Session *s;
@@ -478,10 +478,10 @@ get_numwall_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_int(s, 0, *rc) < 0)
+        if(proto_session_body_unmarshall_int(s, 0, &rc) < 0)
         {
            fprintf(stderr, "get_numwall_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_numwall_rpc: unmarshalled response rc = %d \n", rc);
         }
     }
@@ -493,7 +493,7 @@ get_numwall_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 }
 
 static int
-get_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
+do_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 {
     int rc, x, y;
     Proto_Session *s;
@@ -507,16 +507,16 @@ get_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_int(s, 0, *x) < 0)
+        if(proto_session_body_unmarshall_int(s, 0, &x) < 0)
         {
             fprintf(stderr, "do_dim_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_dim_rpc: unmarshalled response x = %d \n", x);
         }
-        if(proto_session_body_unmarshall_int(s, sizeof(int), *y) < 0)
+        if(proto_session_body_unmarshall_int(s, sizeof(int), &y) < 0)
         {
             fprintf(stderr, "do_dim_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_dim_rpc: unmarshalled response y = %d \n", y);
         }
   
@@ -524,7 +524,7 @@ get_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
        y &= 0x00000000FFFFFFFF;
        rc = (x << 16) | y;
 
-       if (proto_debug_on())
+       if (proto_debug())
           fprintf(stderr, "do_dim_rpc: return value = %X \n", rc);
     }
     else {
@@ -535,7 +535,7 @@ get_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 }
 
 static int
-get_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
+do_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
 {
     int rc;
     char cell, team, occupied;
@@ -560,29 +560,29 @@ get_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
 
     rc = proto_session_rpc(s);
     if (rc == 1) {
-        if(proto_session_body_unmarshall_char(s, 0, *cell) < 0)
+        if(proto_session_body_unmarshall_char(s, 0, &cell) < 0)
         {
             fprintf(stderr, "do_cinfo_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_cinfo_rpc: unmarshalled response cell = %c \n", cell);
         }
-        if(proto_session_body_unmarshall_char(s, 1, *team) < 0)
+        if(proto_session_body_unmarshall_char(s, 1, &team) < 0)
         {
             fprintf(stderr, "do_cinfo_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf3(stderr, "do_cinfo_rpc: unmarshalled response team = %c \n", team);
         }
-        if(proto_session_body_unmarshall_char(s, 2, *occupied) < 0)
+        if(proto_session_body_unmarshall_char(s, 2, &occupied) < 0)
         {
             fprintf(stderr, "do_cinfo_rpc: proto_session_body_unmarshall_bytes failed\n");
-            if (proto_debug_on())
+            if (proto_debug())
                fprintf(stderr, "do_cinfo_rpc: unmarshalled response occupied = %c \n", occupied);
         }
 
         rc = 0;
         rc =((int)cell<<16) | ((int)team<<8) | ((int)occupied);
 
-        if (proto_debug_on())
+        if (proto_debug())
            fprintf(stderr, "do_cinfo_rpc: return value = %X \n", rc);
     }
     else {
@@ -591,7 +591,6 @@ get_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
     }
     return rc;
 }
-
 
 extern int
 proto_client_hello(Proto_Client_Handle ch)

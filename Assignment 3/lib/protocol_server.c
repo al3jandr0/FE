@@ -239,7 +239,7 @@ doUpdateClientsGame(int updateMapVersion)
     pthread_mutex_unlock(&gameMapVersion_mutex);
     proto_session_hdr_marshall(s, &hdr);
 
-    game(&mapBuffer[0]);
+    //game(&mapBuffer[0]);
 
     if (proto_debug())
         fprintf(stderr, "doUpdateClientsGame: mapBuffer\n%s\n", mapBuffer);
@@ -378,7 +378,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
     //proto_session_dump(s);
-
+/*
     // TicTacToe game add a player and return a either 1 or 2 or -1.
     // If the playyer cant be added, return -1
     // X = 1, Y = 2
@@ -400,7 +400,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     rc = proto_session_send_msg(s, 1);
 
     doUpdateClientsGame(0);
-
+*/
     return rc;
 }
 
@@ -416,14 +416,14 @@ proto_server_mt_move_handler(Proto_Session *s)
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
     //proto_session_dump(s);
-
+/*
     // read msg here
     proto_session_body_unmarshall_char(s, 0, &position);
 
     // call TicTacToe function. This function should return an int which represents the following
-    /* 0  “Not your turn yet!”
-     * 1  “Not a valid move!”
-     */
+    // 0  “Not your turn yet!”
+    // 1  “Not a valid move!”
+    //
     // int func( int fd, char position )
     intchar = position - '0';
     pthread_mutex_lock(&game_mutex);
@@ -454,7 +454,7 @@ proto_server_mt_move_handler(Proto_Session *s)
 
     if ( TicTac > 1 )
         doUpdateClientsGame(1);
-    if ( TicTac == 2  ) /* Game is over because of a successfull move*/
+    if ( TicTac == 2  ) // Game is over because of a successfull move
     {
         pthread_mutex_lock(&game_mutex);
         resetGame();
@@ -463,6 +463,7 @@ proto_server_mt_move_handler(Proto_Session *s)
         gameMapVersion.raw++;
         pthread_mutex_unlock(&gameMapVersion_mutex);
     }
+*/
     return rc;
 }
 
@@ -476,7 +477,7 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_leave_game_handler: invoked for session:\n");
     //proto_session_dump(s);
-
+/*
     // remove player from TicTacToe Game
     pthread_mutex_lock(&game_mutex);
     qq = removePlayer(s->fd);
@@ -490,10 +491,10 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
     proto_session_hdr_marshall(s, &h);
 
-    /* quit return values
-     * 1 successfully removed player
-     * 2 unsuccsesfully removed player. Player wasnt registerred in the game
-     */
+    // quit return values
+    //  1 successfully removed player
+    //  2 unsuccsesfully removed player. Player wasnt registerred in the game
+    //
 
     proto_session_body_marshall_int(s, qq);
     rc = proto_session_send_msg(s, 1);
@@ -507,10 +508,9 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
         gameMapVersion.raw++;
         pthread_mutex_unlock(&gameMapVersion_mutex);
     }
+*/
     return rc;
 }
-
-
 
 extern int
 proto_server_init(void)
@@ -532,9 +532,9 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_MOVE, proto_server_mt_move_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_GOODBYE, proto_server_mt_leave_game_handler);
 
-    pthread_mutex_lock(&gameMapVersion_mutex);
-    gameMapVersion.raw = 0;
-    pthread_mutex_unlock(&gameMapVersion_mutex);
+    //pthread_mutex_lock(&gameMapVersion_mutex);
+    //gameMapVersion.raw = 0;
+    //pthread_mutex_unlock(&gameMapVersion_mutex);
 
     for (i = 0; i < PROTO_SERVER_MAX_EVENT_SUBSCRIBERS; i++)
     {
