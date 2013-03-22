@@ -46,6 +46,15 @@ extern int proto_client_hello(Proto_Client_Handle ch);
 extern int proto_client_move(Proto_Client_Handle ch, char d);
 extern int proto_client_goodbye(Proto_Client_Handle ch);
 
+extern int proto_client_numhome(Proto_Client_Handle ch, int teamNo);
+extern int proto_client_numfloor(Proto_Client_Handle ch);
+extern int proto_client_numjail(Proto_Client_Handle ch, int teamNo);
+extern int proto_client_numwall(Proto_Client_Handle ch);
+extern int proto_client_dim(Proto_Client_Handle ch);
+extern int proto_client_cinfo(Proto_Client_Handle ch, int x, int y);
+extern int proto_client_dump(Proto_Client_Handle ch);
+
+
 // Game Variables.  Used by proto_client.c and client.c
 #define GAME_MAP_CLIENT_COPY_SIZE 100
 char gameMap_clientCopy[GAME_MAP_CLIENT_COPY_SIZE];
