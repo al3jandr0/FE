@@ -245,20 +245,20 @@ char *specialPrompt(int menu)
             if (strcmp(strtok (cmdInputs, " "), "connect") == 0)
             {
                 connectFLAG = TRUE;
-                /* initGlobal(atoi(*(tokens + 2)), *(tokens + 1));
+                initGlobal(atoi(*(tokens + 2)), *(tokens + 1));
 
-                 if (clientInit(&c) < 0)
-                 {
-                     fprintf(stderr, "ERROR: clientInit failed\n");
-                     return -1;
-                 }
+                if (clientInit(&c) < 0)
+                {
+                    fprintf(stderr, "ERROR: clientInit failed\n");
+                    return -1;
+                }
 
-                 // ok startup our connection to the server
-                 if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
-                 {
-                     fprintf(stderr, "ERROR: startConnection failed\n");
-                     return -1;
-                 }*/
+                // ok startup our connection to the server
+                if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
+                {
+                    fprintf(stderr, "ERROR: startConnection failed\n");
+                    return -1;
+                }
             }
             else
             {
@@ -276,7 +276,8 @@ char *specialPrompt(int menu)
         free(tokens);
     */
 
-    printf("The command is input is - %s\n", cmdInputs);
+    if (proto_debug())
+        printf("The command is input is - %s\n", cmdInputs);
 
     return cmdInputs;
 }
@@ -354,16 +355,16 @@ int doCMDS(char *cmdInput)
         {
             //rc = doRPCCmd(C, 'h');
             //return rc;
-            // rc = proto_client_hello(C->ph);
+            rc = proto_client_hello(C->ph);
             printf("hello: rc=%x\n", rc);
-            //if (rc > 0) game_process_reply(C);
+            if (rc > 0) game_process_reply(C);
         }
 
         else if (strcmp(*(tokens + 0), "numhome") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_numhome(C->ph, *(tokens + 1));
+            rc = proto_client_numhome(C->ph, *(tokens + 1));
 
             if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
                 printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
@@ -375,7 +376,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc
-            //rc = proto_client_numjail(C->ph, *(tokens + 1));
+            rc = proto_client_numjail(C->ph, *(tokens + 1));
             if (*(tokens + 1))
             {
                 if (strcmp(*(tokens + 1), "1") == 0 || strcmp(*(tokens + 1), "2") == 0 )
@@ -391,7 +392,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_numwall(C->ph);
+            rc = proto_client_numwall(C->ph);
             printf("The number of wall cells - %d\n", rc);
         }
 
@@ -399,7 +400,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_numﬂoor(C->ph);
+            rc = proto_client_numﬂoor(C->ph);
             printf("The number of floor cells - %d\n", rc);
         }
 
@@ -407,7 +408,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_dim(C->ph);
+            rc = proto_client_dim(C->ph);
 
             short x = getA(rc);
             short y = getB(rc);
@@ -419,7 +420,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_cinfo(C->ph, *(tokens + 1), *(tokens + 2));
+            rc = proto_client_cinfo(C->ph, *(tokens + 1), *(tokens + 2));
 
             if (*(tokens + 1) && *(tokens + 2))
             {
@@ -447,14 +448,14 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_dump(C->ph);
+            rc = proto_client_dump(C->ph);
         }
 
         else if (strcmp(*(tokens + 0), "debug") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_goodbye(C->ph);
+            rc = proto_client_goodbye(C->ph);
 
             if (*(tokens + 1))
             {
@@ -478,7 +479,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            //rc = proto_client_goodbye(C->ph);
+            rc = proto_client_goodbye(C->ph);
             exit(0);
         }
 
