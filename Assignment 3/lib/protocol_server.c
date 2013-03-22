@@ -371,23 +371,23 @@ proto_server_mt_null_handler(Proto_Session *s)
 static int
 proto_server_mt_join_game_handler(Proto_Session *s)
 {
-    int rc = 1;
+    int rc=1;
     Proto_Msg_Hdr h;
     int player;
 
     if (proto_debug())
-        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
+       fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
     //proto_session_dump(s);
 /*
     // TicTacToe game add a player and return a either 1 or 2 or -1.
     // If the playyer cant be added, return -1
-    // X = 1, Y = 2
+    // X = 1, Y = 2 
     // int addPlayer(int fd);
     pthread_mutex_lock(&game_mutex);
     player = addPlayer(s->fd);
     pthread_mutex_unlock(&game_mutex);
     if (proto_debug())
-        fprintf(stderr, "%d  addPlayer() = %d\n", s->fd, player); // DEBUGING
+    fprintf(stderr, "%d  addPlayer() = %d\n", s->fd, player); // DEBUGING
 
     // TODO: versioning. sver
     // proto_session_hdr_marshall_sver(s, v);
@@ -397,12 +397,13 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     proto_session_hdr_marshall(s, &h);
 
     proto_session_body_marshall_int(s, player);
-    rc = proto_session_send_msg(s, 1);
+    rc=proto_session_send_msg(s,1);
 
     doUpdateClientsGame(0);
 */
     return rc;
 }
+
 
 static int
 proto_server_mt_move_handler(Proto_Session *s)
@@ -512,6 +513,247 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
     return rc;
 }
 
+static int proto_server_mt_numhome_handler(Proto_Session *s)
+{
+    int numhome, rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    // call mze.c numhome func
+    numhome = 5; 
+    //pthread_mutex_lock(&game_mutex); //pthread_mutex_unlock(&game_mutex);
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numhome_handler: maze.c func returned = %d\n", numhome); 
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+ 
+    if (proto_session_body_marshall_int(s, numhome) < 0 )
+        fprintf(stderr, "proto_server_mt_numhome_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_numjail_handler(Proto_Session *s)
+{
+    int numjail, teamNo, rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    // read msg here
+    proto_session_body_unmarshall_int(s, 0, &teamNo);
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numjail_handler: requested teamNo = %d\n", teamNo);
+
+    numjail = 8; // call mze.c numjail(teamNo) func
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numjail_handler: maze.c::func returned = %d\n", numjail);
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+    
+    if (proto_session_body_marshall_int(s, numjail) < 0 )
+        fprintf(stderr, "proto_server_mt_numjail_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_numwall_handler(Proto_Session *s)
+{
+    int numwall, rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_numwall_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    numwall = 54321; // call mze.c numjail(teamNo) func
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numwall_handler: maze.c::func returned = %d\n", numwall);
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+
+    if (proto_session_body_marshall_int(s, numwall) < 0 )
+        fprintf(stderr, "proto_server_mt_numwall_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_numfloor_handler(Proto_Session *s)
+{
+    int numfloor, rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_numfloor_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    numfloor = 12345; // call mze.c numjail(teamNo) func
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numfloor_handler: maze.c::func returned = %d\n", numfloor);
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+
+    if (proto_session_body_marshall_int(s, numfloor) < 0 )
+        fprintf(stderr, "proto_server_mt_numfloor_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_dim_handler(Proto_Session *s)
+{
+    int dimx, dimy, rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_dim_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    dimx = 300; // call mze.c numjail(teamNo) func
+    dimy = 400; // call mze.c numjail(teamNo) func
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_dim_handler: maze.c::func returned x=%d, y=%d\n", dimx, dimy);
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+
+    if (proto_session_body_marshall_int(s, dimx) < 0 )
+        fprintf(stderr, "proto_server_mt_dim_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    if (proto_session_body_marshall_int(s, dimy) < 0 )
+        fprintf(stderr, "proto_server_mt_dim_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_cinfo_handler(Proto_Session *s)
+{
+    int in_x, in_y, rc;
+    char cell, team, occupied;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_cinfo_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    // read msg here
+    proto_session_body_unmarshall_int(s, 0, &in_x);
+    proto_session_body_unmarshall_int(s, sizeof(int), &in_y);
+
+    if (proto_debug()) 
+        fprintf(stderr, "proto_server_mt_numjail_handler: requested cellinfo( %d, %d )\n", in_x, in_y);
+    
+    cell = '#'; // call mze.c numjail(teamNo) func
+    team = '1';
+    occupied = 'Y';
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numjail_handler: maze.c::func returned\n"
+                "     cell='%c', team='%c', occupied='%c'\n", cell, team, occupied);
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+
+    if (proto_session_body_marshall_char(s, cell) < 0 )
+        fprintf(stderr, "proto_server_mt_cinfo_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    if (proto_session_body_marshall_char(s, team) < 0 )
+        fprintf(stderr, "proto_server_mt_cinfo_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    if (proto_session_body_marshall_char(s, occupied) < 0 )
+        fprintf(stderr, "proto_server_mt_cinfo_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+static int proto_server_mt_dump_handler(Proto_Session *s)
+{
+    int rc;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug()) {
+        fprintf(stderr, "proto_server_mt_numfloor_handler: invoked for session:\n");
+        //proto_session_dump(s);
+    }
+
+    // print the map
+
+    // create replay message
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    proto_session_hdr_marshall(s, &h);
+
+    rc = 1;
+    if (proto_session_body_marshall_int(s, rc) < 0 )
+        fprintf(stderr, "proto_server_mt_dump_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s, 1);
+    // TODO: return failed if an error occours
+    return rc;
+}
+
+
 extern int
 proto_server_init(void)
 {
@@ -531,6 +773,14 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_HELLO, proto_server_mt_join_game_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_MOVE, proto_server_mt_move_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_GOODBYE, proto_server_mt_leave_game_handler);
+
+    proto_server_set_req_handler( PROTO_MT_REQ_NUM_HOME , proto_server_mt_numhome_handler  );
+    proto_server_set_req_handler( PROTO_MT_REQ_NUM_JAIL , proto_server_mt_numjail_handler  );
+    proto_server_set_req_handler( PROTO_MT_REQ_NUM_WALL , proto_server_mt_numwall_handler  );
+    proto_server_set_req_handler( PROTO_MT_REQ_NUM_FLOOR, proto_server_mt_numfloor_handler );
+    proto_server_set_req_handler( PROTO_MT_REQ_MAP_DIM  , proto_server_mt_dim_handler      );
+    proto_server_set_req_handler( PROTO_MT_REQ_CELL_INFO, proto_server_mt_cinfo_handler    );
+    proto_server_set_req_handler( PROTO_MT_REQ_MAP_DUMP , proto_server_mt_dump_handler     );
 
     //pthread_mutex_lock(&gameMapVersion_mutex);
     //gameMapVersion.raw = 0;

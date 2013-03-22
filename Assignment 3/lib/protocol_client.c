@@ -592,6 +592,30 @@ do_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
     return rc;
 }
 
+static int
+do_dump_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
+{
+    int rc;
+    Proto_Session *s;
+    Proto_Client *c = ch;
+
+    s = &(c->rpc_session);
+
+    marshall_mtonly(s, mt);
+    rc = proto_session_rpc(s);
+
+    if (rc == 1)
+    {
+        proto_session_body_unmarshall_int(s, 0, &rc);
+    }
+    else
+    {
+        c->session_lost_handler(s);
+        close(s->fd);
+    }
+    return rc;
+}
+
 extern int
 proto_client_hello(Proto_Client_Handle ch)
 {
