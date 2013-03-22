@@ -59,6 +59,6 @@ extern int proto_client_dump(Proto_Client_Handle ch);
 #define GAME_MAP_CLIENT_COPY_SIZE 100
 char gameMap_clientCopy[GAME_MAP_CLIENT_COPY_SIZE];
 Proto_StateVersion gameMap_clientVersion;
-pthread_mutex_t gameMap_clientVersion_mutex;
+//pthread_mutex_t gameMap_clientVersion_mutex;
 
 #endif
