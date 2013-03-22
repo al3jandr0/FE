@@ -262,7 +262,7 @@ char *specialPrompt(int menu)
             }
             else
             {
-                fprintf(stderr, "%s\n", "Error using connect.");
+                fprintf(stderr, "%s\n", "Error using connect usage - connect <IP> <PORT>.");
             }
         }
     }
@@ -333,19 +333,25 @@ int doCMDS(char *cmdInput)
 
     tokens = str_split(cmdInput, ' ');
 
-    if (tokens)
+    proto_debug()
     {
-        int k = 0;
-        for (k = 0; * (tokens + k); k++)
+        if (tokens)
         {
-            printf("%d - %s\n", k, *(tokens + k));
+            int k = 0;
+            for (k = 0; * (tokens + k); k++)
+            {
+                printf("%d - %s\n", k, *(tokens + k));
+            }
         }
     }
 
-    if (strcmp(*(tokens + 0), "connect") == 0 && connectFLAG == FALSE)
+    if (connectFLAG == FALSE)
     {
-        printf("%s\n", "Please do a connect first");
-        return -1;
+        if (strcmp(*(tokens + 0), "connect") != 0)
+        {
+            printf("%s\n", "Please do a connect first - connect <IP> <PORT>");
+            return rc;
+        }
     }
 
 
@@ -366,8 +372,13 @@ int doCMDS(char *cmdInput)
             //return rc;
             rc = proto_client_numhome(C->ph, *(tokens + 1));
 
-            if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
-                printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
+            if (*(tokens + 1))
+            {
+                if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
+                    printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
+                else
+                    printf("%s\n", "Error - usage of numhome: numhome <1|2>");
+            }
             else
                 printf("%s\n", "Error - usage of numhome: numhome <1|2>");
         }
@@ -460,13 +471,9 @@ int doCMDS(char *cmdInput)
             if (*(tokens + 1))
             {
                 if (strcmp(*(tokens + 1), "on") == 0)
-                    //proto_debug_on();
-                    printf("%s\n", "Error - usage of debug: debug <on|off>");
-
+                    proto_debug_on();
                 else if (strcmp(*(tokens + 1), "off") == 0)
-                    // proto_debug_off();
-                    printf("%s\n", "Error - usage of debug: debug <on|off>");
-
+                    proto_debug_off();
                 else
                     printf("%s\n", "Error - usage of debug: debug <on|off>");
             }

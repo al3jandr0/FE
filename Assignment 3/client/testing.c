@@ -207,12 +207,14 @@ int doCMDS(char *cmdInput)
         }
     }
 
-    if (strcmp(*(tokens + 0), "connect") == 0 && connectFLAG == FALSE)
+    if (connectFLAG == FALSE)
     {
-        printf("%s\n", "Please do a connect first");
-        return -1;
+        if (strcmp(*(tokens + 0), "connect") != 0)
+        {
+            printf("%s\n", "Please do a connect first");
+            return rc;
+        }
     }
-
 
     if (tokens)
     {
@@ -231,8 +233,13 @@ int doCMDS(char *cmdInput)
             //return rc;
             //rc = proto_client_numhome(C->ph, *(tokens + 1));
 
-            if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
-                printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
+            if (*(tokens + 1))
+            {
+                if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
+                    printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
+                else
+                    printf("%s\n", "Error - usage of numhome: numhome <1|2>");
+            }
             else
                 printf("%s\n", "Error - usage of numhome: numhome <1|2>");
         }
