@@ -4,7 +4,8 @@
 ###TEAM###
 ## For Example ##
 ###Formally The Engineers & Floppy Disk###
-![The Egineers](http://i.imgur.com/eh6yF3T.jpg)
+![The Engineers](http://i.imgur.com/eh6yF3T.jpg)
+![The Floppy Disk](http://i.imgur.com/qfAzA1q.jpg)
 
 ###MEMBERS:###
 
