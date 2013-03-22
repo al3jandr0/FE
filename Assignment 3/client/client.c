@@ -29,6 +29,12 @@
 
 #define STRLEN 81
 
+typedef enum
+{
+    FALSE = 0,
+    TRUE = 1
+} Bool;
+
 struct Globals
 {
     char host[STRLEN];
@@ -91,6 +97,180 @@ startConnection(Client *C, char *host, PortType port, Proto_MT_Handler h)
 }
 
 
+void quit() // write error message and quit
+{
+    fprintf(stderr, "Memory Exhausted\n");
+    exit(1);
+}
+
+//returns the size of a character array using a pointer to the first element of the character array
+int size(char *ptr)
+{
+    //variable used to access the subsequent array elements.
+    int offset = 0;
+    //variable that counts the number of elements in your array
+    int count = 0;
+
+    //While loop that tests whether the end of the array has been reached
+    while (*(ptr + offset) != '\0')
+    {
+        //increment the count variable
+        ++count;
+        //advance to the next element of the array
+        ++offset;
+    }
+    //return the size of the array
+    return count;
+}
+
+char *specialPrompt(int menu)
+{
+    int max = 20;
+    int c ;
+    char *cmdInputs = (char *)malloc(max); // allocate buffer
+
+    if (cmdInputs == 0) quit();
+
+    if (menu)
+        fprintf(stderr, "\ndaGame> ");
+
+    fflush(stdout);
+
+    while (true)   // skip leading whitespace
+    {
+        c = getchar();
+        if (c == EOF) break; // end of file
+        if (!isspace(c))
+        {
+            ungetc(c, stdin);
+            break;
+        }
+    }
+
+    int i = 0;
+    while (1)
+    {
+        c = getchar();
+        if (c == EOF) // at end, add terminating zero
+        {
+            cmdInputs[i] = 0;
+            break;
+        }
+        cmdInputs[i] = c;
+        if (i == max - 1) // buffer full
+        {
+            max = max + max;
+            cmdInputs = (char *)realloc(cmdInputs, max); // get a new and larger buffer
+            if (cmdInputs == 0) quit();
+        }
+        i++;
+    }
+
+    //printf("The command is %s\n", cmdInputs);
+
+    char **tokens;
+
+    tokens = str_split(cmdInputs, ' ');
+
+    if (tokens)
+    {
+        if (connectFLAG == FALSE)
+        {
+            if (strcmp(*(tokens + 0), "connect") == 0)
+            {
+                connectFLAG = TRUE;
+                initGlobal(atoi(*(tokens + 2)), *(tokens + 1))
+                
+                if (clientInit(&c) < 0)
+                {
+                    fprintf(stderr, "ERROR: clientInit failed\n");
+                    return -1;
+                }
+
+                // ok startup our connection to the server
+                if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
+                {
+                    fprintf(stderr, "ERROR: startConnection failed\n");
+                    return -1;
+                }
+            }
+            else
+            {
+                fprintf(stderr, "%s\n", "Error using connect.");
+            }
+        }
+    }
+
+    int j;
+    for (j = 0; * (tokens + j); j++)
+    {
+        free(*(tokens + j));
+    }
+    free(tokens);
+
+    return cmdInputs;
+}
+
+
+char **str_split(char *a_str, const char a_delim)
+{
+    char **result    = 0;
+    size_t count     = 0;
+    char *tmp        = a_str;
+    char *last_comma = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (a_delim == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (a_str + strlen(a_str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = malloc(sizeof(char *) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char *token = strtok(a_str, " ");
+
+        while (token)
+        {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, " ");
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
+void tokenize(char *s, char delim)
+{
+    char *olds = s;
+    char olddelim = delim;
+    while (olddelim && *s)
+    {
+        while (*s && (delim != *s)) s++;
+        *s ^= olddelim = *s; // olddelim = *s; *s = 0;
+        cb(olds);
+        *s++ ^= olddelim; // *s = olddelim; s++;
+        olds = s;
+    }
+}
+
 int
 prompt(int menu)
 {
@@ -114,11 +294,103 @@ game_process_reply(Client *C)
 
     s = proto_client_rpc_session(C->ph);
 
-    fprintf(stderr, "%s: do something %p\n", __func__, s);
+    fprintf(stderr, "%s: called %p\n", __func__, s);
 
     return 1;
 }
 
+
+int doCMDS(Client *C, char *cmdInput)
+{
+    int rc = 1;
+
+    char **tokens;
+
+    tokens = str_split(cmdInputs, ' ');
+
+    if (tokens)
+    {
+        if ( strcmp(*(tokens + 0), "connect") == 0 )
+        {
+            //rc = doRPCCmd(C, 'h');
+            //return rc;
+            rc = proto_client_hello(C->ph);
+            printf("hello: rc=%x\n", rc);
+            if (rc > 0) game_process_reply(C);
+        }
+
+        else if (strcmp(*(tokens + 0), "numhome") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_numhome(C->ph, *(tokens + 1));
+
+        }
+
+        else if (strcmp(*(tokens + 0), "numjail") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc
+            rc = proto_client_numjail(C->ph, *(tokens + 1));
+        }
+
+        else if (strcmp(*(tokens + 0), "numwall") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_numwall(C->ph;
+        }
+
+                                  else if (strcmp(*(tokens + 0), "numﬂoor") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_numﬂoor(C->ph);
+        }
+
+        else if (strcmp(*(tokens + 0), "dim") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_dim(C->ph);
+        }
+
+        else if (strcmp(*(tokens + 0), "cinfo") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_cinfo(C->ph, *(tokens + 1), *(tokens + 2));
+        }
+
+        else if (strcmp(*(tokens + 0), "dump") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_dump(C->ph);
+        }
+
+        else if (strcmp(*(tokens + 0), "quit") == 0)
+        {
+            //rc = docmd(C, 'q');
+            //return rc;
+            rc = proto_client_goodbye(C->ph);
+        }
+
+        else
+        {
+            fprintf(stderr, "\nUnkown Command\n");
+        }
+    }
+
+    int j;
+    for (j = 0; * (tokens + j); j++)
+    {
+        free(*(tokens + j));
+    }
+    free(tokens);
+
+    return rc;
+}
 
 int
 doRPCCmd(Client *C, char c)
@@ -201,12 +473,32 @@ shell(void *arg)
     char c;
     int rc;
     int menu = 1;
+    char *longcommand;
 
     while (1)
     {
+        (longcommand = specialPrompt(menu));
+
+        if (size(longcommand) > 1)
+        {
+            rc = doCMDS(C, longcommand);
+        }
+        else
+        {
+            c = longcommand[0];
+            if (c != 0)
+                rc = docmd(C, c);
+        }
+
+        if (rc < 0) break;
+        if (rc == 1) menu = 1; else menu = 0;
+
+
+        /*
         if ((c = prompt(menu)) != 0) rc = docmd(C, c);
         if (rc < 0) break;
         if (rc == 1) menu = 1; else menu = 0;
+        */
     }
 
     fprintf(stderr, "terminating\n");
@@ -227,6 +519,14 @@ usage(char *pgm)
             " %s localhost 12345 : starts client connecting to locaalhost:12345\n",
             pgm, pgm, pgm, pgm);
 
+}
+
+void
+initGlobal(int port, char **host)
+{
+    bzero(&globals, sizeof(globals));
+    strncpy(globals.host, host, strlen(host) - 1);
+    globals.port = port;
 }
 
 void
@@ -259,22 +559,26 @@ main(int argc, char **argv)
 {
     Client c;
 
-    initGlobals(argc, argv);
-
-    if (clientInit(&c) < 0)
-    {
-        fprintf(stderr, "ERROR: clientInit failed\n");
-        return -1;
-    }
-
-    // ok startup our connection to the server
-    if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
-    {
-        fprintf(stderr, "ERROR: startConnection failed\n");
-        return -1;
-    }
-
     shell(&c);
+
+    /*
+        initGlobals(argc, argv);
+
+        if (clientInit(&c) < 0)
+        {
+            fprintf(stderr, "ERROR: clientInit failed\n");
+            return -1;
+        }
+
+        // ok startup our connection to the server
+        if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
+        {
+            fprintf(stderr, "ERROR: startConnection failed\n");
+            return -1;
+        }
+
+        shell(&c);
+    */
 
     return 0;
 }
