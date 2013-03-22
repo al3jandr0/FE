@@ -1,9 +1,9 @@
 # Distributed Systems Spring 2013 #
-# Assignment 3: Bootstrapping Capture-the-Flag #
+## Assignment 3: Bootstrapping Capture-the-Flag ##
 
 
 ###TEAM###
-## For Example ##
+### For Example# ##
 ![The Egineers](http://i.imgur.com/eh6yF3T.jpg)
 
 ###MEMBERS:###
