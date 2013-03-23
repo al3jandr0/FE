@@ -127,7 +127,7 @@ proto_client_event_update_handler(Proto_Session *s)
 
         gameMap_clientCopy[sizeof(gameMap_clientCopy) - 1] = 0;
 
-        map(&gameMap_clientCopy[0]);
+        //map(&gameMap_clientCopy[0]);
     }
     pthread_mutex_unlock(&gameMap_clientVersion_mutex);
 
@@ -270,6 +270,9 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     int rc;
     Proto_Session *s;
     Proto_Client *c = ch;
+
+    if (proto_debug())
+        fprintf(stderr, "do_join_game_rpc started.\n");
 
     s = &(c->rpc_session);
     // marshall
@@ -579,7 +582,7 @@ do_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
         if (proto_debug())
              fprintf(stderr, "do_cinfo_rpc: unmarshalled response cell = %c \n", cell);
         if (proto_debug())
-             fprintf3(stderr, "do_cinfo_rpc: unmarshalled response team = %c \n", team);
+             fprintf(stderr, "do_cinfo_rpc: unmarshalled response team = %c \n", team);
         if (proto_debug())
              fprintf(stderr, "do_cinfo_rpc: unmarshalled response occupied = %c \n", occupied);
 

@@ -373,7 +373,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
 {
     int rc=1;
     Proto_Msg_Hdr h;
-    int player;
+    int player = 1;
 
     if (proto_debug())
        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
@@ -388,9 +388,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     pthread_mutex_unlock(&game_mutex);
     if (proto_debug())
     fprintf(stderr, "%d  addPlayer() = %d\n", s->fd, player); // DEBUGING
-
-    // TODO: versioning. sver
-    // proto_session_hdr_marshall_sver(s, v);
+*/
     bzero(&h, sizeof(s));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
@@ -400,7 +398,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     rc=proto_session_send_msg(s,1);
 
     doUpdateClientsGame(0);
-*/
+
     return rc;
 }
 
@@ -473,7 +471,7 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
 {
     int rc = 1;
     Proto_Msg_Hdr h;
-    int qq;
+    int qq = 1;
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_leave_game_handler: invoked for session:\n");
@@ -486,20 +484,15 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
 
     if (proto_debug())
         fprintf(stderr, "%d  quit() = %d\n", s->fd, qq); // DEBUGING
-
+*/
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
     proto_session_hdr_marshall(s, &h);
 
-    // quit return values
-    //  1 successfully removed player
-    //  2 unsuccsesfully removed player. Player wasnt registerred in the game
-    //
-
     proto_session_body_marshall_int(s, qq);
     rc = proto_session_send_msg(s, 1);
-
+/*
     // if rmovePlayer == 1. call update
     if ( qq == 1  )
     {

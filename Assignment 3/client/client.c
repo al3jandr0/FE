@@ -26,6 +26,7 @@
 #include "../lib/types.h"
 #include "../lib/protocol_client.h"
 #include "../lib/protocol_utils.h"
+#include <assert.h>
 
 #define STRLEN 81
 
@@ -35,7 +36,7 @@ typedef enum
     TRUE = 1
 } Bool;
 
-int connectFLAG = FALSE;
+int connectFLAG = TRUE;
 
 struct Globals
 {
@@ -78,7 +79,7 @@ void
 initGlobal(int port, char *host)
 {
     bzero(&globals, sizeof(globals));
-    strncpy(globals.host, host, strlen(host) - 1);
+    strncpy(globals.host, host, strlen(host));
     globals.port = port;
 }
 
@@ -177,21 +178,6 @@ char **str_split(char *a_str, const char a_delim)
     return result;
 }
 
-void tokenize(char *s, char delim)
-{
-    char *olds = s;
-    char olddelim = delim;
-    while (olddelim && *s)
-    {
-        while (*s && (delim != *s)) s++;
-        *s ^= olddelim = *s; // olddelim = *s; *s = 0;
-        cb(olds);
-        *s++ ^= olddelim; // *s = olddelim; s++;
-        olds = s;
-    }
-}
-
-
 char *specialPrompt(int menu)
 {
     int max = 20;
@@ -234,31 +220,48 @@ char *specialPrompt(int menu)
         }
         i++;
     }
-    //char **tokens;
+    char **tokens;
 
-    //tokens = str_split(cmdInputs, ' ');
 
-    //if (tokens)
+char temp[40];
+  strcpy (temp,cmdInputs);
+
+    tokens = str_split(temp, ' ');
+
+
+        int o;
+        for (o = 0; * (tokens + o); o++)
+        {
+            printf("%s\n",*(tokens + o));
+        }
+
+    if (tokens)
     {
         if (connectFLAG == FALSE)
         {
-            if (strcmp(strtok (cmdInputs, " "), "connect") == 0)
+            if (strcmp(*(tokens + 0), "connect") == 0)
             {
                 connectFLAG = TRUE;
+
+printf("IP - %s  \nPORT - %d\n", *(tokens + 1), atoi(*(tokens + 2)));
+
                 initGlobal(atoi(*(tokens + 2)), *(tokens + 1));
+
+printf("INITGLOBAL - GOOD\n");
 
                 if (clientInit(&c) < 0)
                 {
                     fprintf(stderr, "ERROR: clientInit failed\n");
                     return -1;
                 }
-
+printf("CLIENTINIT- GOOD\n");
                 // ok startup our connection to the server
                 if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
                 {
                     fprintf(stderr, "ERROR: startConnection failed\n");
                     return -1;
                 }
+printf("CONNECTION - GOOD\n");
             }
             else
             {
@@ -267,14 +270,12 @@ char *specialPrompt(int menu)
         }
     }
 
-    /*
         int j;
         for (j = 0; * (tokens + j); j++)
         {
             free(*(tokens + j));
         }
         free(tokens);
-    */
 
     if (proto_debug())
         printf("The command is input is - %s\n", cmdInputs);
@@ -325,7 +326,7 @@ short getB(int C)
     return C & 0xFFFF;
 }
 
-int doCMDS(char *cmdInput)
+int doCMDS(Client *C, char *cmdInput)
 {
     int rc = 1;
 
@@ -333,8 +334,8 @@ int doCMDS(char *cmdInput)
 
     tokens = str_split(cmdInput, ' ');
 
-    proto_debug()
-    {
+    //if(proto_debug())
+    //{
         if (tokens)
         {
             int k = 0;
@@ -343,7 +344,7 @@ int doCMDS(char *cmdInput)
                 printf("%d - %s\n", k, *(tokens + k));
             }
         }
-    }
+    //}
 
     if (connectFLAG == FALSE)
     {
@@ -364,13 +365,14 @@ int doCMDS(char *cmdInput)
             rc = proto_client_hello(C->ph);
             printf("hello: rc=%x\n", rc);
             if (rc > 0) game_process_reply(C);
+return rc;
         }
 
         else if (strcmp(*(tokens + 0), "numhome") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_numhome(C->ph, *(tokens + 1));
+            rc = proto_client_numhome(C->ph, atoi(*(tokens + 1)));
 
             if (*(tokens + 1))
             {
@@ -387,7 +389,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc
-            rc = proto_client_numjail(C->ph, *(tokens + 1));
+            rc = proto_client_numjail(C->ph, atoi(*(tokens + 1)));
             if (*(tokens + 1))
             {
                 if (strcmp(*(tokens + 1), "1") == 0 || strcmp(*(tokens + 1), "2") == 0 )
@@ -411,7 +413,9 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_numﬂoor(C->ph);
+            //rc = proto_client_numﬂoor(C->ph);
+            
+            rc = proto_client_numfloor(C->ph);
             printf("The number of floor cells - %d\n", rc);
         }
 
@@ -431,7 +435,7 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_cinfo(C->ph, *(tokens + 1), *(tokens + 2));
+            rc = proto_client_cinfo(C->ph, atoi(*(tokens + 1)), atoi(*(tokens + 2)));
 
             if (*(tokens + 1) && *(tokens + 2))
             {
@@ -466,11 +470,15 @@ int doCMDS(char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_goodbye(C->ph);
+            //rc = proto_client_goodbye(C->ph);
 
+printf("debug - %s\n", *(tokens + 0));
             if (*(tokens + 1))
             {
-                if (strcmp(*(tokens + 1), "on") == 0)
+
+printf("debug - %s\n", *(tokens + 1));
+
+if (strcmp(*(tokens + 1), "on") == 0)
                     proto_debug_on();
                 else if (strcmp(*(tokens + 1), "off") == 0)
                     proto_debug_off();
@@ -480,6 +488,7 @@ int doCMDS(char *cmdInput)
             else
                 printf("%s\n", "Error - usage of debug: debug <on|off>");
 
+return rc;
         }
 
         else if (strcmp(*(tokens + 0), "quit") == 0)
@@ -496,7 +505,7 @@ int doCMDS(char *cmdInput)
         }
     }
 
-    int j;
+    int j = 0;
     for (j = 0; * (tokens + j); j++)
     {
         free(*(tokens + j));
@@ -593,7 +602,7 @@ shell(void *arg)
     {
         (longcommand = specialPrompt(menu));
 
-        if (size(longcommand) > 1)
+        if (strlen(longcommand) > 1)
         {
             rc = doCMDS(C, longcommand);
         }
@@ -665,9 +674,8 @@ main(int argc, char **argv)
 {
     Client c;
 
-    shell(&c);
+    //shell(&c);
 
-    /*
         initGlobals(argc, argv);
 
         if (clientInit(&c) < 0)
@@ -684,8 +692,6 @@ main(int argc, char **argv)
         }
 
         shell(&c);
-    */
-
     return 0;
 }
 
