@@ -25,6 +25,7 @@
 #include "net.h"
 #include "protocol.h"
 #include "protocol_session.h"
+#include <pthread.h>
 
 typedef void *Proto_Client_Handle;
 

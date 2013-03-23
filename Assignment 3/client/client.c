@@ -223,17 +223,18 @@ char *specialPrompt(int menu)
     char **tokens;
 
 
-char temp[40];
-  strcpy (temp,cmdInputs);
+    char temp[40];
+    strcpy (temp, cmdInputs);
 
     tokens = str_split(temp, ' ');
 
 
-        int o;
-        for (o = 0; * (tokens + o); o++)
-        {
-            printf("%s\n",*(tokens + o));
-        }
+    int o;
+    for (o = 0; * (tokens + o); o++)
+    {
+        if (proto_debug())
+            printf("%s\n", *(tokens + o));
+    }
 
     if (tokens)
     {
@@ -243,25 +244,30 @@ char temp[40];
             {
                 connectFLAG = TRUE;
 
-printf("IP - %s  \nPORT - %d\n", *(tokens + 1), atoi(*(tokens + 2)));
+                if (proto_debug())
+                    printf("IP - %s  \nPORT - %d\n", *(tokens + 1), atoi(*(tokens + 2)));
 
                 initGlobal(atoi(*(tokens + 2)), *(tokens + 1));
 
-printf("INITGLOBAL - GOOD\n");
+                if (proto_debug())
+                    printf("INITGLOBAL - GOOD\n");
 
                 if (clientInit(&c) < 0)
                 {
                     fprintf(stderr, "ERROR: clientInit failed\n");
                     return -1;
                 }
-printf("CLIENTINIT- GOOD\n");
+                if (proto_debug())
+                    printf("CLIENTINIT- GOOD\n");
                 // ok startup our connection to the server
+
                 if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
                 {
                     fprintf(stderr, "ERROR: startConnection failed\n");
                     return -1;
                 }
-printf("CONNECTION - GOOD\n");
+                if (proto_debug())
+                    printf("CONNECTION - GOOD\n");
             }
             else
             {
@@ -270,12 +276,12 @@ printf("CONNECTION - GOOD\n");
         }
     }
 
-        int j;
-        for (j = 0; * (tokens + j); j++)
-        {
-            free(*(tokens + j));
-        }
-        free(tokens);
+    int j;
+    for (j = 0; * (tokens + j); j++)
+    {
+        free(*(tokens + j));
+    }
+    free(tokens);
 
     if (proto_debug())
         printf("The command is input is - %s\n", cmdInputs);
@@ -331,20 +337,20 @@ int doCMDS(Client *C, char *cmdInput)
     int rc = 1;
 
     char **tokens;
-
+    int k = 0;
     tokens = str_split(cmdInput, ' ');
 
-    //if(proto_debug())
-    //{
-        if (tokens)
+    if (tokens)
+    {
+        for (k = 0; * (tokens + k); k++)
         {
-            int k = 0;
-            for (k = 0; * (tokens + k); k++)
-            {
+            if (proto_debug())
                 printf("%d - %s\n", k, *(tokens + k));
-            }
         }
-    //}
+    }
+
+    if (proto_debug())
+        printf("Total commands - %d\n", k);
 
     if (connectFLAG == FALSE)
     {
@@ -365,17 +371,18 @@ int doCMDS(Client *C, char *cmdInput)
             rc = proto_client_hello(C->ph);
             printf("hello: rc=%x\n", rc);
             if (rc > 0) game_process_reply(C);
-return rc;
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "numhome") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_numhome(C->ph, atoi(*(tokens + 1)));
 
-            if (*(tokens + 1))
+            if (k == 2)
             {
+                rc = proto_client_numhome(C->ph, atoi(*(tokens + 1)));
+
                 if ((strcmp(*(tokens + 1), "1") == 0) || (strcmp(*(tokens + 1), "2") == 0 ))
                     printf("The number of home cells that team %s has - %d\n", *(tokens + 1), rc);
                 else
@@ -383,15 +390,21 @@ return rc;
             }
             else
                 printf("%s\n", "Error - usage of numhome: numhome <1|2>");
+
+            rc = 1;
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "numjail") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc
-            rc = proto_client_numjail(C->ph, atoi(*(tokens + 1)));
-            if (*(tokens + 1))
+
+            if (k == 2)
             {
+                rc = proto_client_numjail(C->ph, atoi(*(tokens + 1)));
+
                 if (strcmp(*(tokens + 1), "1") == 0 || strcmp(*(tokens + 1), "2") == 0 )
                     printf("The number of jail cells that team %s has - %d\n", *(tokens + 1), rc);
                 else
@@ -399,6 +412,9 @@ return rc;
             }
             else
                 printf("%s\n", "Error - usage of numjail: numjail <1|2>");
+            rc = 1;
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "numwall") == 0)
@@ -407,6 +423,9 @@ return rc;
             //return rc;
             rc = proto_client_numwall(C->ph);
             printf("The number of wall cells - %d\n", rc);
+            rc = 1;
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "numﬂoor") == 0)
@@ -414,9 +433,12 @@ return rc;
             //rc = docmd(C, 'q');
             //return rc;
             //rc = proto_client_numﬂoor(C->ph);
-            
+
             rc = proto_client_numfloor(C->ph);
             printf("The number of floor cells - %d\n", rc);
+            rc = 1;
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "dim") == 0)
@@ -429,18 +451,35 @@ return rc;
             short y = getB(rc);
 
             printf("The dimensions of the maze - %hd by %hd\n", x, y);
+
+            rc = 1;
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "cinfo") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;
-            rc = proto_client_cinfo(C->ph, atoi(*(tokens + 1)), atoi(*(tokens + 2)));
 
-            if (*(tokens + 1) && *(tokens + 2))
+            if (k == 3)
             {
+                rc = proto_client_cinfo(C->ph, atoi(*(tokens + 1)), atoi(*(tokens + 2)));
+
                 if (atoi(*(tokens + 1)) > 0 && atoi(*(tokens + 2)) > 0 )
-                    printf("%s\n", "Good");
+                {
+                    if (proto_debug())
+                        printf("%s\n", "Good");
+
+                    int cell = (rc >> (8 * 1)) & 0xff;
+                    printf("The cell is a - %c\n", (char) cell);
+
+                    int team = (rc >> (8 * 2)) & 0xff;
+                    printf("The team is - %c\n", (char) team);
+
+                    int occupied = (rc >> (8 * 3)) & 0xff;
+                    printf("Is the cell occupied - %c\n", (char) occupied);
+                }
                 else
                     printf("%s\n", "Error - usage of cinfo: cinfo <X> <Y>");
 
@@ -448,14 +487,9 @@ return rc;
             else
                 printf("%s\n", "Error - usage of cinfo: cinfo <X> <Y>");
 
-            int cell = (rc >> (8 * 1)) & 0xff;
-            printf("The cell is a - %c\n", (char) cell);
+            rc = 1;
 
-            int team = (rc >> (8 * 2)) & 0xff;
-            printf("The team is - %c\n", (char) team);
-
-            int occupied = (rc >> (8 * 3)) & 0xff;
-            printf("Is the cell occupied - %c\n", (char) occupied);
+            return rc;
 
         }
 
@@ -464,6 +498,8 @@ return rc;
             //rc = docmd(C, 'q');
             //return rc;
             rc = proto_client_dump(C->ph);
+
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "debug") == 0)
@@ -472,13 +508,9 @@ return rc;
             //return rc;
             //rc = proto_client_goodbye(C->ph);
 
-printf("debug - %s\n", *(tokens + 0));
-            if (*(tokens + 1))
+            if (k == 2)
             {
-
-printf("debug - %s\n", *(tokens + 1));
-
-if (strcmp(*(tokens + 1), "on") == 0)
+                if (strcmp(*(tokens + 1), "on") == 0)
                     proto_debug_on();
                 else if (strcmp(*(tokens + 1), "off") == 0)
                     proto_debug_off();
@@ -488,7 +520,7 @@ if (strcmp(*(tokens + 1), "on") == 0)
             else
                 printf("%s\n", "Error - usage of debug: debug <on|off>");
 
-return rc;
+            return rc;
         }
 
         else if (strcmp(*(tokens + 0), "quit") == 0)
@@ -608,9 +640,9 @@ shell(void *arg)
         }
         else
         {
-            c = longcommand[0];
-            if (c != 0)
-                rc = docmd(C, c);
+            //c = longcommand[0];
+            //if (c != 0)
+            //  rc = docmd(C, c);
         }
 
         if (rc < 0) break;
@@ -676,22 +708,22 @@ main(int argc, char **argv)
 
     //shell(&c);
 
-        initGlobals(argc, argv);
+    initGlobals(argc, argv);
 
-        if (clientInit(&c) < 0)
-        {
-            fprintf(stderr, "ERROR: clientInit failed\n");
-            return -1;
-        }
+    if (clientInit(&c) < 0)
+    {
+        fprintf(stderr, "ERROR: clientInit failed\n");
+        return -1;
+    }
 
-        // ok startup our connection to the server
-        if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
-        {
-            fprintf(stderr, "ERROR: startConnection failed\n");
-            return -1;
-        }
+    // ok startup our connection to the server
+    if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
+    {
+        fprintf(stderr, "ERROR: startConnection failed\n");
+        return -1;
+    }
 
-        shell(&c);
+    shell(&c);
     return 0;
 }
 
