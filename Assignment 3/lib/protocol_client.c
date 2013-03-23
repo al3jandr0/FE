@@ -528,8 +528,8 @@ do_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
         if (proto_debug())
             fprintf(stderr, "do_dim_rpc: unmarshalled response y = %X \n", y);
   
-       x &= 0x00000000FFFFFFFF;
-       y &= 0x00000000FFFFFFFF;
+       //x &= 0x0000FFFF;
+       //y &= 0x0000FFFF;
        rc = (x << 16) | y;
 
        if (proto_debug())
@@ -580,14 +580,14 @@ do_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
              fprintf(stderr, "do_cinfo_rpc: proto_session_body_unmarshall_bytes failed\n");
 
         if (proto_debug())
-             fprintf(stderr, "do_cinfo_rpc: unmarshalled response cell = %c \n", cell);
+             fprintf(stderr, "do_cinfo_rpc: unmarshalled response cell = %X, %c \n", cell & 0xFF, cell);
         if (proto_debug())
-             fprintf(stderr, "do_cinfo_rpc: unmarshalled response team = %c \n", team);
+             fprintf(stderr, "do_cinfo_rpc: unmarshalled response team = %X, %c \n", team & 0xFF, team);
         if (proto_debug())
-             fprintf(stderr, "do_cinfo_rpc: unmarshalled response occupied = %c \n", occupied);
+             fprintf(stderr, "do_cinfo_rpc: unmarshalled response occupied = %X, %c \n", occupied & 0xFF, occupied);
 
         rc = 0;
-        rc =((int)cell<<16) | ((int)team<<8) | ((int)occupied);
+        rc =((cell & 0xFF)<<16) | ((team & 0xFF)<<8) | ((occupied & 0xFF));
 
         if (proto_debug())
            fprintf(stderr, "do_cinfo_rpc: return value = %X \n", rc);
