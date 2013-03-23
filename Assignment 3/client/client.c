@@ -36,7 +36,7 @@ typedef enum
     TRUE = 1
 } Bool;
 
-int connectFLAG = TRUE;
+int connectFLAG = FALSE;
 
 struct Globals
 {
@@ -60,8 +60,11 @@ clientInit(Client *C)
     if (proto_client_init(&(C->ph)) < 0)
     {
         fprintf(stderr, "client: main: ERROR initializing proto system\n");
-        return -1;
+        connectFLAG = FALSE;
+
+        //return -1;
     }
+
     return 1;
 }
 
@@ -91,7 +94,9 @@ startConnection(Client *C, char *host, PortType port, Proto_MT_Handler h)
         if (proto_client_connect(C->ph, host, port) != 0)
         {
             fprintf(stderr, "failed to connect\n");
-            return -1;
+            connectFLAG = FALSE;
+
+            //return -1;
         }
         proto_session_set_data(proto_client_event_session(C->ph), C);
 #if 0
@@ -223,56 +228,76 @@ char *specialPrompt(int menu)
     char **tokens;
 
 
-    char temp[40];
+    char temp[400];
     strcpy (temp, cmdInputs);
 
     tokens = str_split(temp, ' ');
 
 
     int o;
+
     for (o = 0; * (tokens + o); o++)
     {
         if (proto_debug())
-            printf("%s\n", *(tokens + o));
+            printf("%d - %s\n", o, *(tokens + o));
     }
+
+    if (proto_debug())
+        printf("%d\n", o);
 
     if (tokens)
     {
         if (connectFLAG == FALSE)
         {
-            if (strcmp(*(tokens + 0), "connect") == 0)
+            if (strcmp(*(tokens + 0), "connect") == 0 && o == 3)
             {
                 connectFLAG = TRUE;
-
+                /*
                 if (proto_debug())
-                    printf("IP - %s  \nPORT - %d\n", *(tokens + 1), atoi(*(tokens + 2)));
+                   printf("IP - %s  \nPORT - %d\n", *(tokens + 1), atoi(*(tokens + 2)));
 
                 initGlobal(atoi(*(tokens + 2)), *(tokens + 1));
 
                 if (proto_debug())
-                    printf("INITGLOBAL - GOOD\n");
+                   printf("INITGLOBAL - GOOD\n");
 
                 if (clientInit(&c) < 0)
                 {
-                    fprintf(stderr, "ERROR: clientInit failed\n");
-                    return -1;
+                   fprintf(stderr, "ERROR: clientInit failed\n");
+                   connectFLAG = FALSE;
+                   //return -1;
                 }
                 if (proto_debug())
-                    printf("CLIENTINIT- GOOD\n");
+                   printf("CLIENTINIT- GOOD\n");
                 // ok startup our connection to the server
 
                 if (startConnection(&c, globals.host, globals.port, update_event_handler) < 0)
                 {
-                    fprintf(stderr, "ERROR: startConnection failed\n");
-                    return -1;
+                   fprintf(stderr, "ERROR: startConnection failed\n");
+                   connectFLAG = FALSE;
+                   //return -1;
                 }
                 if (proto_debug())
-                    printf("CONNECTION - GOOD\n");
+                   printf("CONNECTION - GOOD\n");
+                   */
             }
             else
             {
                 fprintf(stderr, "%s\n", "Error using connect usage - connect <IP> <PORT>.");
             }
+        }
+        else if ((strcmp(*(tokens + 0), "connect") == 0) && connectFLAG == TRUE)
+        {
+            fprintf(stderr, "You are connected.\n");
+
+            int j;
+            for (j = 0; * (tokens + j); j++)
+            {
+                free(*(tokens + j));
+            }
+            free(tokens);
+
+            return cmdInputs;
         }
     }
 
@@ -361,16 +386,19 @@ int doCMDS(Client *C, char *cmdInput)
         }
     }
 
-
     if (tokens)
     {
         if ( strcmp(*(tokens + 0), "connect") == 0 )
         {
             //rc = doRPCCmd(C, 'h');
             //return rc;
-            rc = proto_client_hello(C->ph);
-            printf("hello: rc=%x\n", rc);
-            if (rc > 0) game_process_reply(C);
+            //rc = proto_client_hello(C->ph);
+            //printf("hello: rc=%x\n", rc);
+            //if (rc > 0) game_process_reply(C);
+            if (connectFLAG == TRUE)
+            {
+                //fprintf(stderr, "Are are already connected.");
+            }
             return rc;
         }
 
@@ -378,7 +406,6 @@ int doCMDS(Client *C, char *cmdInput)
         {
             //rc = docmd(C, 'q');
             //return rc;
-
             if (k == 2)
             {
                 rc = proto_client_numhome(C->ph, atoi(*(tokens + 1)));
@@ -423,6 +450,7 @@ int doCMDS(Client *C, char *cmdInput)
             //return rc;
             rc = proto_client_numwall(C->ph);
             printf("The number of wall cells - %d\n", rc);
+
             rc = 1;
 
             return rc;
@@ -634,6 +662,8 @@ shell(void *arg)
     {
         (longcommand = specialPrompt(menu));
 
+        //printf("%s\n", longcommand);
+
         if (strlen(longcommand) > 1)
         {
             rc = doCMDS(C, longcommand);
@@ -706,8 +736,7 @@ main(int argc, char **argv)
 {
     Client c;
 
-    //shell(&c);
-
+    // shell(&c);
     initGlobals(argc, argv);
 
     if (clientInit(&c) < 0)
@@ -724,6 +753,7 @@ main(int argc, char **argv)
     }
 
     shell(&c);
+
     return 0;
 }
 
