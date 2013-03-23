@@ -23,58 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-typedef enum{
-  CT_Floor =' ',
-  CT_Wall = '#',
-  CT_Jailj ='j',
-  CT_JailJ ='J',
-  CT_Homeh ='h',
-  CT_HomeH ='H',
-}Cell_Type;
-
-typedef struct {
-  int x;
-  int y;
-}Position;
-
-typedef enum{
-  Team1=1,
-  Team2=2,
-}Team;
-
-typedef struct{
-  Team team;
-  Position PlayerPos;
-  int ID;
-  int PID;
-  // Object *o;// FIX FOR ITEMS
-}Player;
-
-
-typedef struct{
-  Cell_Type C_Type;
-  Position Cell_Pos;
-  Player *p;
-  // Object *o;// FIX FOR ITEMS
-}Cell;
-
-typedef struct {
-  Cell *cells;
-  int numFloor;
-  int numWall;
-  int numCells;
-  int numOfJails[2];
-  int numOfHomes[2];
-  Position dimensions;
-} Maze;
-
-/*
-  typedef struct{
-  Player players[numPlayers];
-  }PlayerList;
-*/
+#include <maze.h>
 
 int main()
 {
