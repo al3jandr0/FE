@@ -23,18 +23,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <maze.h>
+//#include "mazw.h"
+#include "maze.c"
 
 int main()
 {
 
 
-  
+  Maze maze;
   
   FILE *mapFile;
   int c;
   int currentIndex = 0;
-  Maze maze; 
 
 
   mapFile = fopen("daGame.map", "r");
