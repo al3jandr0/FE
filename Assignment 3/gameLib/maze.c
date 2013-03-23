@@ -38,11 +38,36 @@ return maze.numFloor;
 }
 
 
-static void
- findDimensions(Position *pos){
+extern void
+findDimensions(Position *pos)
+{
   pos->x=maze.dimensions.x;
-  pos->x=maze.dimensions.y;
+  pos->y=maze.dimensions.y;
 }
 
-
+extern void
+findCInfo(int column, int row)
+{
+  int pos;
+  if (row==0&&column==0){
+    pos=0;
+  } else if (row==0) {
+    pos=column;
+  } else if (column == 0) {
+    pos = row*200;
+  }else {
+    pos = row*column*200;
+  }
+  printf("    this is pos of cell - %d   ", pos);
+  
+  maze.cells[pos];
+ printf("\nCell Type=%d \n Cell Team=%d\n  ",maze.cells[pos].C_Type,maze.cells[pos].Cell_Team);
+ if (maze.cells[pos].p==NULL){
+   printf("Cell Is Not Occupied");
+ } else {
+   printf("Cell Is Occupied");
+ }
+ printf("    this is x - %d---this is y - %d   ",maze.cells[pos].Cell_Pos.x,maze.cells[pos].Cell_Pos.y);
+ 
+}
 
