@@ -216,6 +216,7 @@ dumpMap() {
       printf("%c",print);      
     }
   }
+  fflush(stdout);
 }
 
 
