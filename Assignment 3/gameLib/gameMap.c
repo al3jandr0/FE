@@ -23,15 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "mazw.h"
+//#include "maze.h"
 #include "maze.c"
 
 int main()
-{
-
-
-  Maze maze;
-  
+{  
   FILE *mapFile;
   int c;
   int currentIndex = 0;
@@ -61,27 +57,34 @@ int main()
   fseek(mapFile, 0, SEEK_SET);
     
     
-  fseek(mapFile, 0, SEEK_END);
+  /* fseek(mapFile, 0, SEEK_END);
   int fileSize = ftell(mapFile);
   fseek(mapFile, 0, SEEK_SET);
-  maze.cells = malloc((columnCounter*rowCounter)*sizeof(Cell));
+  */ 
+  maze.cells = malloc(((columnCounter*rowCounter) + 2)*sizeof(Cell));
   // c = fgetc(mapFile);
-  printf("%d== current c=%c", currentIndex, fgetc(mapFile));
-  printf("%d==cell[0]",  maze.cells[0].C_Type);
-  while ((c = fgetc(mapFile)) != EOF) {
-    
-    //  printf("%d%c", currentIndex,c);     
-    if (c!=10) {
-      Cell newCell;
-      maze.cells[currentIndex] = newCell;
-      printf("current-%d,char-%c",currentIndex,c);
+  // printf("%d== current c=%c", currentIndex, fgetc(mapFile));
+ // printf("%d==cell[0]",  maze.cells[0].C_Type);
+ int charcount = 0;
+ while ((c = fgetc(mapFile)) != EOF) {
+   //  printf("%c",c);
+   //  printf("current index=%d, c=%c  ", currentIndex,c);     
+   if (c!=10) {
+     
+     charcount++;
+     //    printf("chars passed = %d", charcount);
+     Cell newCell;
+
+      // printf("maze.cells[0] is %d or %c",maze.cells[0].C_Type,c);
+
+      //   printf("current-%d,char-%c",currentIndex,c);
       newCell.C_Type = c;
       newCell.Cell_Pos.x = currentIndex/maze.dimensions.x;
-     
       newCell.Cell_Pos.y = currentIndex%maze.dimensions.y;
-
+      newCell.p=NULL;
+      maze.cells[currentIndex] = newCell;
       
-      Player *p=NULL;
+      // printf("%d==cell[current] && %d==cell[0]",  maze.cells[currentIndex].C_//Type, maze.cells[0].C_Type);
       // *o=NULL;  //FIX FOR ITEMS
       
       if (c=='#'){
@@ -103,30 +106,35 @@ int main()
       
       currentIndex++;
     } else{
-    }
-  }
+     printf("\n");
+     //   printf("%d==cell[current] && %d==cell[0]",  maze.cells[currentIndex].C//_Type, maze.cells[0].C_Type);
 
-  printf("%d==cell[0]",  maze.cells[0].C_Type);
+    }
+
+  }
 
 
   fclose(mapFile);
   //  printf("%d,cell0",  maze.cells[0].C_Type);
   //  printf("%d\n\n", maze.cells[1].C_Type);
   
-	 /* for (int i = 0; i < (maze.dimensions.y*maze.dimensions.x)+1;i++) {
-  
+  for (int i = 0; i < (maze.dimensions.y*maze.dimensions.x)+1;i++) {
+    
     int c =  maze.cells[i].C_Type;
     char print = (char) c;
-    
+   
+     
     if ((i%maze.dimensions.y) == 0){
-      printf ("\nd%d%c",i,print);
+          printf("\n%c",print);
+ //   printf ("\nd%d%c",i,print);
       //  printf ("%c,%d\n",print,i);
     }else {
-      printf("%d%c", i,print);
+        printf("%c",print);
+    //  printf("%d%c", i,print);
       // printf ("%c(%d)", print,i);
       
       
       }
-       }*/
+       }
 }
 
