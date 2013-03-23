@@ -19,6 +19,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ****************************************************************************/
+/*
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +30,7 @@
 
 
 
-extern Maze
-loadMap()
+extern Maze loadMap()
 {
   FILE *mapFile;
   if((mapFile = fopen("daGame.map", "r"))==NULL) {
@@ -113,4 +113,6 @@ dumpMap() {
       printf("%c",print);      
     }
   }
-} 
+}
+
+*/ 

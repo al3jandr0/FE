@@ -414,7 +414,7 @@ do_numfloor_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     Proto_Msg_Hdr h;
 
     if (proto_debug())
-       fprintf(stderr, "do_numfloor_rpcn");
+       fprintf(stderr, "do_numfloor_rpc: invoked for session \n");
 
     s = &(c->rpc_session);
     bzero(&h, sizeof(h));
@@ -656,7 +656,7 @@ proto_client_numhome(Proto_Client_Handle ch, int teamNo)
 extern int
 proto_client_numfloor(Proto_Client_Handle ch)
 {
-    return do_numfloor_rpc(ch, PROTO_MT_REQ_NUM_JAIL);
+    return do_numfloor_rpc(ch, PROTO_MT_REQ_NUM_FLOOR);
 }
 
 extern int

@@ -2,7 +2,6 @@
 #define __DAGAME_MAZE__
 
 #define numPlayers = 200;
-//extern Maze maze; 
 
 typedef struct {
 	int x;
@@ -56,11 +55,19 @@ typedef struct {
 }Maze;
 
 extern int  findNumHome(int team);
-extern int  findNumHome(int team);
+extern int  findNumJail(int team);
 extern int  findNumWall();
 extern int  findNumFloor();
 extern void  findDimensions(Position *p);
 extern void findCInfo(int x, int y);
 
+extern char is_cell_occupied(int column, int row);
+extern char get_cell_team(int column, int row);
+extern char get_cell_type(int column, int row);
+extern int get_maze_dimy();
+extern int get_maze_dimx();
+extern void dumpMap();
+extern Maze loadMap();
 
 #endif
+

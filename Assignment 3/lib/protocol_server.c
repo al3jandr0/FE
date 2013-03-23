@@ -32,6 +32,8 @@
 #include "protocol_utils.h"
 #include "protocol_server.h"
 
+#include "./../lib/maze.h"
+
 #define PROTO_SERVER_MAX_EVENT_SUBSCRIBERS 1024
 
 static
@@ -508,7 +510,7 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
 
 static int proto_server_mt_numhome_handler(Proto_Session *s)
 {
-    int numhome, rc;
+    int numhome, rc, teamNo;
     Proto_Msg_Hdr h;
 
     if (proto_debug()) {
@@ -516,8 +518,12 @@ static int proto_server_mt_numhome_handler(Proto_Session *s)
         //proto_session_dump(s);
     }
 
-    // call mze.c numhome func
-    numhome = 5; 
+    proto_session_body_unmarshall_int(s, 0, &teamNo);
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_numhome_handler: requested teamNo = %d\n", teamNo);
+
+    numhome = findNumHome(teamNo); //numhome = 5; 
     //pthread_mutex_lock(&game_mutex); //pthread_mutex_unlock(&game_mutex);
 
     if (proto_debug())
@@ -554,7 +560,7 @@ static int proto_server_mt_numjail_handler(Proto_Session *s)
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_numjail_handler: requested teamNo = %d\n", teamNo);
 
-    numjail = 8; // call mze.c numjail(teamNo) func
+    numjail = findNumJail(teamNo);//numjail = 8; // call mze.c numjail(teamNo) func
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_numjail_handler: maze.c::func returned = %d\n", numjail);
@@ -614,7 +620,7 @@ static int proto_server_mt_numfloor_handler(Proto_Session *s)
         //proto_session_dump(s);
     }
 
-    numfloor = 12345; // call mze.c numjail(teamNo) func
+    numfloor = findNumFloor();//numfloor = 12345; // call mze.c numjail(teamNo) func
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_numfloor_handler: maze.c::func returned = %d\n", numfloor);
@@ -644,8 +650,10 @@ static int proto_server_mt_dim_handler(Proto_Session *s)
         //proto_session_dump(s);
     }
 
-    dimx = 1;//dimx = 0x0000AAAA; // call mze.c numjail(teamNo) func
-    dimy = 2;//dimy = 0x0000BBBB; // call mze.c numjail(teamNo) func
+    //dimx = 1;//dimx = 0x0000AAAA; // call mze.c numjail(teamNo) func
+    //dimy = 2;//dimy = 0x0000BBBB; // call mze.c numjail(teamNo) func
+    dimx = get_maze_dimx();
+    dimy = get_maze_dimy();
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_dim_handler: maze.c::func returned x=%d, y=%d\n", dimx, dimy);
@@ -687,9 +695,14 @@ static int proto_server_mt_cinfo_handler(Proto_Session *s)
     if (proto_debug()) 
         fprintf(stderr, "proto_server_mt_numjail_handler: requested cellinfo( %d, %d )\n", in_x, in_y);
     
-    cell = '#';//cell = (char)0xCC; // call mze.c numjail(teamNo) func
-    team = '1';//team = (char)0xDD;
-    occupied = 'Y';//occupied = (char)0xEE;
+    //cell = '#';//cell = (char)0xCC; // call mze.c numjail(teamNo) func
+    //team = '1';//team = (char)0xDD;
+    //occupied = 'Y';//occupied = (char)0xEE;
+
+    cell = get_cell_type( in_x, in_y );
+    team = get_cell_team( in_x, in_y );
+    occupied = is_cell_occupied( in_x, in_y );
+    //findCInfo(in_x, in_y);
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_numjail_handler: maze.c::func returned\n"
@@ -724,11 +737,11 @@ static int proto_server_mt_dump_handler(Proto_Session *s)
     Proto_Msg_Hdr h;
 
     if (proto_debug()) {
-        fprintf(stderr, "proto_server_mt_numfloor_handler: invoked for session:\n");
+        fprintf(stderr, "proto_server_mt_dump_handler: invoked for session:\n");
         //proto_session_dump(s);
     }
 
-    // print the map
+    dumpMap();
 
     // create replay message
     bzero(&h, sizeof(h));

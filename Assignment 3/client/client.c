@@ -428,7 +428,7 @@ int doCMDS(Client *C, char *cmdInput)
             return rc;
         }
 
-        else if (strcmp(*(tokens + 0), "numﬂoor") == 0)
+        else if (strcmp(*(tokens + 0), "numfloor") == 0)
         {
             //rc = docmd(C, 'q');
             //return rc;

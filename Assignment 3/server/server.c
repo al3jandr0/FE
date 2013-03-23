@@ -27,6 +27,7 @@
 #include "../lib/types.h"
 #include "../lib/protocol_server.h"
 #include "../lib/protocol_utils.h"
+#include "../lib/maze.h"
 
 int
 doUpdateClients(void)
@@ -120,6 +121,9 @@ main(int argc, char **argv)
         fprintf(stderr, "ERROR: failed to start rpc loop\n");
         exit(-1);
     }
+
+    // load game map into maze var (maze is located in maze.c)
+    loadMap();
 
     shell(NULL);
 
