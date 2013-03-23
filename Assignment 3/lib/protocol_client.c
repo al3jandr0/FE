@@ -587,7 +587,7 @@ do_cinfo_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, int x, int y)
              fprintf(stderr, "do_cinfo_rpc: unmarshalled response occupied = %X, %c \n", occupied & 0xFF, occupied);
 
         rc = 0;
-        rc =((cell & 0xFF)<<16) | ((team & 0xFF)<<8) | ((occupied & 0xFF));
+        rc =((cell & 0xFF)<<8) | ((team & 0xFF)<<16) | ((occupied & 0xFF)<<24);
 
         if (proto_debug())
            fprintf(stderr, "do_cinfo_rpc: return value = %X \n", rc);
