@@ -33,7 +33,7 @@
 #include "protocol_server.h"
 #include "server_types.h"
 #include "protocol_event_msg.h"
-
+#include "general_utils.h"
 #include "./../lib/maze.h"
 
 #define PROTO_SERVER_MAX_EVENT_SUBSCRIBERS 1024
@@ -858,3 +858,33 @@ proto_server_init(void)
 
     return 0;
 }
+
+// For debuging event channel update Lists of deltas
+void printlist_Player( LinkedList *il)
+{
+   int ii = 0;
+   while ( il !=NULL )
+   {
+      Player *val = (Player*)il->value;
+      printf("Player:\n  id = %d\n  pid = %d\n  team = %d\n  x = %d\n  "
+             "y = %d\n  state = %c\n", val->ID, val->PID, val->team,
+             val->PlayerPos.x, val->PlayerPos.y, val->State);
+      il = il->next;
+      ii++;
+   }
+}
+
+void printlist_Cell( LinkedList *il)
+{
+   int ii = 0;
+   while ( il !=NULL )
+   {
+      Cell *val = (Cell*)il->value;
+      printf("Cell:\n  type = %c\n  team = %d\n  x = %d\n  y = %d\n",
+             val->C_Type, val->Cell_Team, val->Cell_Pos.x, val->Cell_Pos.y);
+      il = il->next;
+      ii++;
+   }
+}
+
+

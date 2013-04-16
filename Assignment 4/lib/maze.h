@@ -3,6 +3,11 @@
 
 #define numPlayers = 200;
 
+typedef enum{
+	Team1=1,
+	Team2=2
+}Team;
+
 typedef struct {
 	int x;
 	int y;
@@ -18,7 +23,7 @@ typedef enum{
 }Cell_Type;
 
 typedef struct{
-	int team;
+        Team team;
 	Position PlayerPos;
 	int ID;
 	int PID;
@@ -36,7 +41,7 @@ typedef struct{
 	Cell_Type C_Type;
 	Position Cell_Pos;
 	Player *p;
-	int Cell_Team;
+	Team Cell_Team;
 	//Object *o;  //fix for items
 }Cell;
 
