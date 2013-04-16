@@ -394,9 +394,9 @@ int doCMDS(Client *C, char *cmdInput)
             if (k == 2)
             {
                 if (strcmp(*(tokens + 1), "shovel") == 0)
-                   rc = proto_item_action(C->ph, 's', 'p'); 
+                   rc = proto_item_action(C->ph, 'S', 'p'); 
                 else if (strcmp(*(tokens + 1), "flag") == 0)
-                   rc = proto_item_action(C->ph, 'f', 'p'); 
+                   rc = proto_item_action(C->ph, 'F', 'p'); 
                 else
                    printf("%s\n", "Error - usage of pickup: pickup <shovel|flag>");
             }
@@ -409,9 +409,9 @@ int doCMDS(Client *C, char *cmdInput)
             if (k == 2)
             {
                 if (strcmp(*(tokens + 1), "shovel") == 0)
-                   rc = proto_item_action(C->ph, 's', 'd'); 
+                   rc = proto_item_action(C->ph, 'S', 'd'); 
                 else if (strcmp(*(tokens + 1), "flag") == 0)
-                   rc = proto_item_action(C->ph, 'f', 'd'); 
+                   rc = proto_item_action(C->ph, 'F', 'd'); 
                 else
                    printf("%s\n", "Error - usage of drop: drop <shovel|flag>");
             }

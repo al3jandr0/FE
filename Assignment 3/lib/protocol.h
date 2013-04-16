@@ -20,11 +20,11 @@
 
 typedef enum
 {
-
     // Requests
     PROTO_MT_REQ_BASE_RESERVED_FIRST,
     PROTO_MT_REQ_BASE_HELLO,
     PROTO_MT_REQ_BASE_MOVE,
+    PROTO_MT_REQ_ITEM_ACTION,
     PROTO_MT_REQ_BASE_GOODBYE,
 
     // map requests
@@ -43,8 +43,18 @@ typedef enum
     PROTO_MT_REP_BASE_RESERVED_FIRST,
     PROTO_MT_REP_BASE_HELLO,
     PROTO_MT_REP_BASE_MOVE,
+    PROTO_MT_REP_ITEM_ACTION,
     PROTO_MT_REP_BASE_GOODBYE,
-    // RESERVED LAST REP MT PUT ALL NEW REP MTS ABOVE
+
+    PROTO_MT_REP_NUM_HOME,
+    PROTO_MT_REP_NUM_JAIL,
+    PROTO_MT_REP_NUM_WALL,
+    PROTO_MT_REP_NUM_FLOOR,
+    PROTO_MT_REP_MAP_DIM,
+    PROTO_MT_REP_CELL_INFO,
+    PROTO_MT_REP_MAP_DUMP,
+
+    // RESERVED LASTO REP MT PUT ALL NEW REP MTS ABOVE
     PROTO_MT_REP_BASE_RESERVED_LAST,
 
     // Events
@@ -106,9 +116,9 @@ typedef union
 
 typedef struct
 {
-    Proto_GV0       v0;
-    Proto_GV1       v1;
-    Proto_GV2       v2;
+    Proto_GV0       v0; // game state. 1 = game on hold, 2 = started, 3 = over
+    Proto_GV1       v1;  
+    Proto_GV2       v2; 
 } __attribute__((__packed__)) Proto_Game_State;
 
 typedef struct

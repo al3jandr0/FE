@@ -30,6 +30,13 @@
 #include "protocol.h"
 #include "protocol_utils.h"
 #include "protocol_client.h"
+#include "client_types.h"
+#include "protocol_event_msg.h"
+
+GameData gamedata;
+Maze themaze;
+pthread_mutex_t client_data_mutex;
+pthread_mutex_t client_maze_mutex;
 
 typedef struct
 {
@@ -100,7 +107,7 @@ proto_client_event_null_handler(Proto_Session *s)
 
     return 1;
 }
-
+/*
 static int
 proto_client_event_update_handler(Proto_Session *s)
 {
@@ -112,6 +119,9 @@ proto_client_event_update_handler(Proto_Session *s)
 
     bzero(&h, sizeof(h));
     proto_session_hdr_unmarshall(s, &h);
+
+    // h.sver.raw  (ulong long ) version number 
+    // h.gstate.v0, v1, v2 (int) game state
 
     if (proto_debug())
         fprintf(stderr, "serverMapVersion = %llu\n", h.sver.raw);
@@ -133,6 +143,58 @@ proto_client_event_update_handler(Proto_Session *s)
 
     //proto_session_dump(s);
 
+    return 1;
+}*/
+/*
+Broadcast Message Format Version 1
+
+header: game_ver, game_state, count_cellinfo, count_playerinfo, count_iteminfo, extra?
+        uint      long        short           short             short           int
+        4 + 8 + 2 + 2 + 1 = 22 bytes
+
+        4 + 5 bytes = 10 bytes
+items: type, x,    y
+       char  char  char
+       3 bytes
+*/
+static int
+proto_client_event_update_handler(Proto_Session *s)
+{
+    unsigned long long temp_version;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug())
+        fprintf(stderr,
+                "proto_client_event_update_handler: invoked for session:\n");
+    // proto_session_dump(s);
+
+    bzero(&h, sizeof(h));
+    proto_session_hdr_unmarshall(s, &h);
+
+    // pthread_mutex_lock(&gameMap_clientVersion_mutex);
+    if (proto_debug())
+        fprintf(stderr, "server game_version = %llu\n, local game_version = %llu", 
+                                               h.sver.raw, gamedata.game_version);
+
+    // check that client recieved rpc join reply
+    while (1)
+    {
+        pthread_mutex_lock(&client_data_mutex);
+        if ( gamedata.game_version != -1 )
+        {
+           // TODO: implement correct game update (Sol 1) 
+           if (proto_client_event_msg_unmarshall_v1(s, h.blen, h.sver.raw) < 0)
+              fprintf(stderr, "proto_client_event_update_handler: ERROR "
+                              "proto_client_event_msg_unmarshall_v1 failed\n"); 
+           if ( h.sver.raw > gamedata.game_version )
+              gamedata.game_version = h.sver.raw;
+           if ( h.gstate.v0.raw != gamedata.game_state )
+              gamedata.game_state = h.gstate.v0.raw; 
+           pthread_mutex_unlock(&client_data_mutex);
+           break;
+        }
+        pthread_mutex_unlock(&client_data_mutex);
+    }
     return 1;
 }
 
@@ -188,10 +250,11 @@ proto_client_init(Proto_Client_Handle *ch)
                                           proto_client_session_lost_default_hdlr);
 
     // initialize local game state
-    pthread_mutex_lock(&gameMap_clientVersion_mutex);
-    gameMap_clientVersion.raw = 0;
-    bzero(&gameMap_clientCopy[0], sizeof(gameMap_clientCopy));
-    pthread_mutex_unlock(&gameMap_clientVersion_mutex);
+    pthread_mutex_lock(&client_data_mutex);
+    gamedata.player_id = -1;
+    gamedata.game_state = -1;
+    gamedata.game_version = -1;
+    pthread_mutex_unlock(&client_data_mutex);
 
     for (mt = PROTO_MT_EVENT_BASE_RESERVED_FIRST + 1;
             mt < PROTO_MT_EVENT_BASE_RESERVED_LAST; mt++)
@@ -267,77 +330,173 @@ do_generic_dummy_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 static int
 do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 {
-    int rc;
+    int rc, X, Y;
     Proto_Session *s;
     Proto_Client *c = ch;
+    Proto_Msg_Hdr h;
 
     if (proto_debug())
         fprintf(stderr, "do_join_game_rpc started.\n");
 
+    // prepare msessage
     s = &(c->rpc_session);
-    // marshall
-
-    marshall_mtonly(s, mt);
+    bzero(&h, sizeof(h));
+    h.type = mt;
+    proto_session_hdr_marshall(s, &h);
+    // sned message
     rc = proto_session_rpc(s);
-
+    
+    // process reply: pID, xdim, ydim, maze
     if (rc == 1)
     {
-        proto_session_body_unmarshall_int(s, 0, &rc);
+        proto_session_hdr_unmarshall(s, &h);
+        if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
+            fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_int failed\n");
+        if (rc < 0) 
+        {
+           if (proto_debug())
+              fprintf(stderr, "do_join_game_rpc: returned player id = %d\n", rc);
+           return rc;
+        }    
+
+        if (proto_session_body_unmarshall_int(s, sizeof(int), &X) < 0)
+            fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_int failed\n");
+        if (proto_session_body_unmarshall_int(s, 2*sizeof(int), &Y) < 0)
+            fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_int failed\n");
+
+        // initialize game version and state
+        pthread_mutex_lock(&client_data_mutex);
+        gamedata.player_id = rc;
+        gamedata.game_state = h.gstate.v0.raw;
+        gamedata.game_version = h.sver.raw;
+
+        themaze.rows = Y;
+        themaze.columns = X;
+        themaze.maze = (char*) malloc( X*Y*sizeof(char) + 1 );
+
+        if (proto_session_body_unmarshall_bytes(s, 3*sizeof(int), X*Y, themaze.maze) < 0)
+            fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_bytes failed\n");
+
+        themaze.maze[X*Y] = 0;
+        if (proto_debug())
+            fprintf(stderr, "do_join_game_rpc: unmarshalled response\n" 
+                    "   game version = %llu\n game state = %d\n  player id = %d\n   dimx = %d\n"
+                    "   dimy = %d\n   maze = \n%s", h.sver.raw, h.gstate.v0.raw, rc, X, Y, themaze.maze);
+        pthread_mutex_unlock(&client_data_mutex);
     }
     else
     {
         c->session_lost_handler(s);
         close(s->fd);
     }
-
     return rc;
 }
 
 static int
 do_move_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char data)
 {
-    int rc;
+    int rc, temp_version;
     Proto_Session *s;
     Proto_Client *c = ch;
     Proto_Msg_Hdr h;
-    char message[PROTO_SESSION_BUF_SIZE - 1];
 
+    // prepare message: pID, move_command
     s = &(c->rpc_session);
-    // marshall
-
     bzero(&h, sizeof(h));
-
-    // TODO: Fill the other h fields. In particulat h.sver
-    //       Save a client-local version of sver, pstate, and gstate
     h.type = mt;
-    // pthread_mutex_lock(&gameMap_clientVersion_mutex);
-    //    gameMap_clientVersion.raw;
-
-
     proto_session_hdr_marshall(s, &h);
 
-    // add data to s->sbuf
-    if (proto_session_body_marshall_char(s, data) < 0)
-        fprintf(stderr,
-                "do_move_rpc: proto_session_body_marshall_char failed. "
+    if (proto_debug())
+        fprintf(stderr, "do_move_rpc:\n   pId: %d\n   move: #%c#\n", gamedata.player_id, data);
+
+    if (proto_session_body_marshall_int(s, gamedata.player_id) < 0)
+        fprintf(stderr, "do_move_rpc: proto_session_body_marshall_int failed. "
                 "Not enough available sbufer space\n");
-
-    //marshall_mtonly(s, mt);
+    if (proto_session_body_marshall_char(s, data) < 0)
+        fprintf(stderr, "do_move_rpc: proto_session_body_marshall_char failed. "
+                "Not enough available sbufer space\n");
     rc = proto_session_rpc(s);
-
+ 
+    // process reply
     if (rc == 1)
     {
-        //proto_session_body_unmarshall_int(s, 0, &rc);
-        if (proto_session_body_unmarshall_bytes(s, 0, sizeof(message), &message[0]) < 0)
-            fprintf(stderr, "do_move_rpc: proto_session_body_unmarshall_bytes failed\n");
-        fprintf(stderr, "%s", message);
+        proto_session_hdr_unmarshall(s, &h);
+        // keep client synchronized
+        /*while (1)
+        {
+            pthread_mutex_lock(&client_data_mutex);
+            temp_version = gamedata.game_version
+            pthread_mutex_unlock(&client_data_mutex);
+            if ( h.sver.raw <= gamedata.game_version )
+               break;
+        }*/
+
+        if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
+            fprintf(stderr, "do_move_rpc: proto_session_body_unmarshall_int failed\n");
+        if (proto_debug())
+            fprintf(stderr, "do_move_rpc: unmarshalled response rc = %d, game version = %llu, game state = %d \n",
+                             rc, h.sver.raw, h.gstate.v0.raw);
     }
     else
     {
         c->session_lost_handler(s);
         close(s->fd);
     }
+    return rc;
+}
 
+static int
+do_item_action_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char item, char action)
+{
+    int rc;
+    Proto_Session *s;
+    Proto_Client *c = ch;
+    Proto_Msg_Hdr h;
+
+    // prepare message
+    s = &(c->rpc_session);
+    bzero(&h, sizeof(h));
+    h.type = mt;
+    proto_session_hdr_marshall(s, &h);
+
+    if (proto_debug())
+        fprintf(stderr, "do_item_action: pId: %d, item: #%c#, action = #%c#\n", gamedata.player_id, item, action);
+
+    if (proto_session_body_marshall_int(s, gamedata.player_id) < 0)
+        fprintf(stderr, "do_item_action_rpc: proto_session_body_marshall_int failed. "
+                "Not enough available sbufer space\n");
+    if (proto_session_body_marshall_char(s, item) < 0)
+        fprintf(stderr, "do_item_action: proto_session_body_marshall_char failed. "
+                "Not enough available sbufer space\n");
+    if (proto_session_body_marshall_char(s, action) < 0)
+        fprintf(stderr, "do_item_action: proto_session_body_marshall_char failed. "
+                "Not enough available sbufer space\n");
+    rc = proto_session_rpc(s);
+ 
+    // process response
+    if (rc == 1)
+    {
+        proto_session_hdr_unmarshall(s, &h);
+        // keep client synchronized
+        /*while (1)
+        {
+            pthread_mutex_lock(&client_data_mutex);
+            temp_version = gamedata.game_version
+            pthread_mutex_unlock(&client_data_mutex);
+            if ( h.sver.raw <= gamedata.game_version )
+               break;
+        }*/
+        if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
+            fprintf(stderr, "do_item_action: proto_session_body_unmarshall_int failed\n");
+        if (proto_debug())
+            fprintf(stderr, "do_item_action: unmarshalled response rc = %d, game version = %llu, game state = %d \n",
+                             rc, h.sver.raw, h.gstate.v0.raw);
+    }
+    else
+    {
+        c->session_lost_handler(s);
+        close(s->fd);
+    }
     return rc;
 }
 
@@ -347,18 +506,35 @@ do_leave_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     int rc;
     Proto_Session *s;
     Proto_Client *c = ch;
+    Proto_Msg_Hdr h;
 
     if (proto_debug())
        fprintf(stderr, "do_leave_rpc\n");
 
     s = &(c->rpc_session);
+    bzero(&h, sizeof(h));
 
     marshall_mtonly(s, mt);
     rc = proto_session_rpc(s);
 
     if (rc == 1)
     {
-        proto_session_body_unmarshall_int(s, 0, &rc);
+        proto_session_hdr_unmarshall(s, &h);
+        // keep client synchronized
+        /*while (1)
+        {
+            pthread_mutex_lock(&client_data_mutex);
+            temp_version = gamedata.game_version
+            pthread_mutex_unlock(&client_data_mutex);
+            if ( h.sver.raw <= gamedata.game_version )
+               break;
+        }*/
+
+        if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
+            fprintf(stderr, "do_leave_game: proto_session_body_unmarshall_int failed\n");
+        if (proto_debug())
+            fprintf(stderr, "do_leave_game: unmarshalled response rc = %d, game version = %llu, game state = %d \n",
+                            rc, h.sver.raw, h.gstate.v0.raw);
     }
     else
     {
@@ -528,8 +704,6 @@ do_dim_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
         if (proto_debug())
             fprintf(stderr, "do_dim_rpc: unmarshalled response y = %X \n", y);
   
-       //x &= 0x0000FFFF;
-       //y &= 0x0000FFFF;
        rc = (x << 16) | y;
 
        if (proto_debug())
@@ -688,7 +862,11 @@ proto_client_dump(Proto_Client_Handle ch)
 {
     return do_dump_rpc(ch, PROTO_MT_REQ_MAP_DUMP);
 }
-
+extern int
+proto_item_action(Proto_Client_Handle ch, char item, char action)
+{
+    return do_item_action_rpc(ch, PROTO_MT_REQ_ITEM_ACTION, item, action);
+}
 
 
 

@@ -17,16 +17,12 @@ typedef enum{
 	CT_HomeH ='H',
 }Cell_Type;
 
-typedef enum{
-	Team1=1,
-	Team2=2
-}Team;
-
 typedef struct{
-	Team team;
+	int team;
 	Position PlayerPos;
 	int ID;
 	int PID;
+        char State;
 	// Object *o;  //fix for items
 }Player;
 
@@ -40,7 +36,7 @@ typedef struct{
 	Cell_Type C_Type;
 	Position Cell_Pos;
 	Player *p;
-	Team Cell_Team;
+	int Cell_Team;
 	//Object *o;  //fix for items
 }Cell;
 

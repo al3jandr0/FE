@@ -22,6 +22,8 @@ typedef struct
 extern int add_delta_player(Deltas *d, void *p, int size);
 extern int add_delta_cell(Deltas *d, void *p, int size);
 extern int add_delta_item(Deltas *d, void *p, int size);
+
+
 extern int clean_deltas(Deltas *d);
 extern int init_deltas( Deltas *d);
 static LinkedList *list_add( LinkedList *list, void *p, int size);

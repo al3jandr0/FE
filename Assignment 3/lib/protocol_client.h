@@ -24,6 +24,7 @@
 
 #include "net.h"
 #include "protocol.h"
+#include "protocol_utils.h"
 #include "protocol_session.h"
 #include <pthread.h>
 
@@ -45,6 +46,7 @@ extern int proto_client_set_event_handler(Proto_Client_Handle ch,
 // client side protocol rpc's
 extern int proto_client_hello(Proto_Client_Handle ch);
 extern int proto_client_move(Proto_Client_Handle ch, char d);
+extern int proto_client_item(Proto_Client_Handle ch, char item, char action);
 extern int proto_client_goodbye(Proto_Client_Handle ch);
 
 extern int proto_client_numhome(Proto_Client_Handle ch, int teamNo);

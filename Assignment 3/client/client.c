@@ -27,6 +27,7 @@
 #include "../lib/protocol_client.h"
 #include "../lib/protocol_utils.h"
 #include <assert.h>
+#include "./../lib/client_types.h"
 
 #define STRLEN 81
 
@@ -388,6 +389,60 @@ int doCMDS(Client *C, char *cmdInput)
 
     if (tokens)
     {
+        if ( strcmp(*(tokens + 0), "pickup") == 0 )
+        {
+            if (k == 2)
+            {
+                if (strcmp(*(tokens + 1), "shovel") == 0)
+                   rc = proto_item_action(C->ph, 's', 'p'); 
+                else if (strcmp(*(tokens + 1), "flag") == 0)
+                   rc = proto_item_action(C->ph, 'f', 'p'); 
+                else
+                   printf("%s\n", "Error - usage of pickup: pickup <shovel|flag>");
+            }
+	    else 
+               printf("%s\n", "Error - usage of pickup: pickup <shovel|flag>");
+            return rc;
+        }
+        if ( strcmp(*(tokens + 0), "drop") == 0 )
+        {
+            if (k == 2)
+            {
+                if (strcmp(*(tokens + 1), "shovel") == 0)
+                   rc = proto_item_action(C->ph, 's', 'd'); 
+                else if (strcmp(*(tokens + 1), "flag") == 0)
+                   rc = proto_item_action(C->ph, 'f', 'd'); 
+                else
+                   printf("%s\n", "Error - usage of drop: drop <shovel|flag>");
+            }
+	    else 
+               printf("%s\n", "Error - usage of drop: drop <shovel|flag>");
+            return rc;
+        }
+        if ( strcmp(*(tokens + 0), "move") == 0 )
+        {
+            if (k == 2)
+            {
+                if (strcmp(*(tokens + 1), "U") == 0)
+                   rc = proto_client_move(C->ph, 'U'); 
+                else if (strcmp(*(tokens + 1), "D") == 0)
+                   rc = proto_client_move(C->ph, 'D'); 
+                else if (strcmp(*(tokens + 1), "L") == 0)
+                   rc = proto_client_move(C->ph, 'L'); 
+                else if (strcmp(*(tokens + 1), "R") == 0)
+                   rc = proto_client_move(C->ph, 'R'); 
+                else
+                   printf("%s\n", "Error - usage of move: move <U|D|L|R>");
+            }
+	    else 
+                printf("%s\n", "Error - usage of move: move <U|D|L|R>");
+            return rc;
+        }
+        if ( strcmp(*(tokens + 0), "join") == 0 )
+        {
+            rc = proto_client_hello(C->ph); 
+            return rc;
+        }
         if ( strcmp(*(tokens + 0), "connect") == 0 )
         {
             //rc = doRPCCmd(C, 'h');
@@ -729,6 +784,11 @@ initGlobals(int argc, char **argv)
         globals.port = atoi(argv[2]);
     }
 
+    // initalize client types structs defined in ./lib/client_types.h
+    //gamedata
+    themaze.maze = NULL;
+    themaze.rows = 1;
+    themaze.columns = 2;
 }
 
 int

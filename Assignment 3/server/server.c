@@ -28,6 +28,7 @@
 #include "../lib/protocol_server.h"
 #include "../lib/protocol_utils.h"
 #include "../lib/maze.h"
+#include "../lib/server_types.h"
 
 int
 doUpdateClients(void)

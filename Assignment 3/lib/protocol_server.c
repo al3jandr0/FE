@@ -31,10 +31,16 @@
 #include "protocol.h"
 #include "protocol_utils.h"
 #include "protocol_server.h"
+#include "server_types.h"
+#include "protocol_event_msg.h"
 
 #include "./../lib/maze.h"
 
 #define PROTO_SERVER_MAX_EVENT_SUBSCRIBERS 1024
+
+Server_GameData server_gameData;
+pthread_mutex_t server_data_mutex;
+pthread_spinlock_t spinlock;
 
 static
 char *gameReplyMsg[] = { "Not your turn yet!\n",  // 0
@@ -217,41 +223,32 @@ proto_server_post_event(void)
     pthread_mutex_unlock(&Proto_Server.EventSubscribersLock);
 }
 
-// Broad casts the current map to Subscribers
+// Broadcasts changes in the game to Subscribers
 int
 doUpdateClientsGame(int updateMapVersion)
 {
     Proto_Session *s;
     Proto_Msg_Hdr hdr;
-    char mapBuffer[PROTO_SESSION_BUF_SIZE - 1];
 
     if (proto_debug())
-        fprintf(stderr, "doUpdateClientsGame called\n");  // DEBUG
+        fprintf(stderr, "doUpdateClientsGame called\n"); 
 
-    bzero(&mapBuffer[0], sizeof(mapBuffer));
     bzero(&hdr, sizeof(hdr));
 
     s = proto_server_event_session();
     // set sver if nescesary
     hdr.type = PROTO_MT_EVENT_BASE_UPDATE;
-    pthread_mutex_lock(&gameMapVersion_mutex);
-    if (updateMapVersion)
-        gameMapVersion.raw++;
-    hdr.sver.raw = gameMapVersion.raw;
-    pthread_mutex_unlock(&gameMapVersion_mutex);
+    // pthread_spin_lock(&server_data_spinlock);
+    hdr.sver.raw = server_gameData.version;
+    hdr.gstate.v0.raw = server_gameData.state;
+    // pthread_spin_unlock(&server_data_spinlock);
     proto_session_hdr_marshall(s, &hdr);
 
-    //game(&mapBuffer[0]);
-
-    if (proto_debug())
-        fprintf(stderr, "doUpdateClientsGame: mapBuffer\n%s\n", mapBuffer);
-
-    if (proto_session_body_marshall_bytes(s, sizeof(mapBuffer), &mapBuffer[0]) < 0)
-        fprintf(stderr, "doUpdateClientsGame: proto_session_body_marshall_bytes failed\n");
+    // test
+    proto_server_test_msg(s);
     proto_server_post_event();
     return 1;
 }
-
 
 static void *
 proto_server_req_dispatcher(void *arg)
@@ -373,138 +370,165 @@ proto_server_mt_null_handler(Proto_Session *s)
 static int
 proto_server_mt_join_game_handler(Proto_Session *s)
 {
-    int rc=1;
+    int rc, player, dimy, dimx;
     Proto_Msg_Hdr h;
-    int player = 1;
+
+    player = 1;
+    char dummy_maze[] = {'1','2','3','4','5','6','7','8','9'};
 
     if (proto_debug())
        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
     //proto_session_dump(s);
-/*
-    // TicTacToe game add a player and return a either 1 or 2 or -1.
-    // If the playyer cant be added, return -1
-    // X = 1, Y = 2 
-    // int addPlayer(int fd);
-    pthread_mutex_lock(&game_mutex);
-    player = addPlayer(s->fd);
-    pthread_mutex_unlock(&game_mutex);
-    if (proto_debug())
-    fprintf(stderr, "%d  addPlayer() = %d\n", s->fd, player); // DEBUGING
-*/
+
+    // prepare reply message
     bzero(&h, sizeof(s));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    // send to client the current state and version
+    h.sver.raw = server_gameData.version; 
+    h.gstate.v0.raw = server_gameData.state; 
     proto_session_hdr_marshall(s, &h);
 
-    proto_session_body_marshall_int(s, player);
-    rc=proto_session_send_msg(s,1);
+    // TODO: call game logic 
+    dimx = 3;//dimx = get_maze_dimx();
+    dimy = 3;//dimy = get_maze_dimy();
 
+    // TODO: update game version and state if necesary
+    // pthread_mutex_lock(&server_data_mutex);
+    // pthread_mutex_unlock(&server_data_mutex);
+
+    // relpy: pID, xdim, ydim, maze
+    if (proto_session_body_marshall_int(s, player) < 0)
+        fprintf(stderr, "proto_server_mt_join_game_handler: "
+                "proto_session_body_marshall_int failed\n");
+    if (proto_session_body_marshall_int(s, dimx) < 0 )
+        fprintf(stderr, "proto_server_mt_join_game_handler: "
+                "proto_session_body_marshall_int failed\n");
+    if (proto_session_body_marshall_int(s, dimy) < 0 )
+        fprintf(stderr, "proto_server_mt_join_game_handler: "
+                "proto_session_body_marshall_int failed\n");
+    if (proto_session_body_marshall_bytes(s, dimx*dimy, &dummy_maze[0]) < 0)
+        fprintf(stderr, "proto_server_mt_join_game_handler: "
+                "proto_session_body_marshall_bytes failed\n");
+
+    rc = proto_session_send_msg(s,1);
+    // TODO: update subscribers
     doUpdateClientsGame(0);
-
     return rc;
 }
-
 
 static int
 proto_server_mt_move_handler(Proto_Session *s)
 {
-    int rc = 1;
+    int rc, player_id;
+    char move;
+    int dummy_reply = 1;
     Proto_Msg_Hdr h;
-    char position;
-    char reply[PROTO_SESSION_BUF_SIZE - 1];
-    int TicTac, intchar;
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
-    //proto_session_dump(s);
-/*
-    // read msg here
-    proto_session_body_unmarshall_char(s, 0, &position);
+        // proto_session_dump(s);
 
-    // call TicTacToe function. This function should return an int which represents the following
-    // 0  “Not your turn yet!”
-    // 1  “Not a valid move!”
-    //
-    // int func( int fd, char position )
-    intchar = position - '0';
-    pthread_mutex_lock(&game_mutex);
-    TicTac = logic( s->fd, intchar);
-    pthread_mutex_unlock(&game_mutex);
-    // TODO: if debug func
+    // Read rpc message: pID, direction
+    proto_session_body_unmarshall_int(s, 0, &player_id);
+    proto_session_body_unmarshall_char(s, sizeof(int), &move);
     if (proto_debug())
-    {
-        fprintf(stderr, "%d  intchar = %d\n", s->fd, intchar); // DEBUGING
-        fprintf(stderr, "%d  logic() = %d\n", s->fd, TicTac); // DEBUGING
-        fprintf(stderr, "%d  move: %c\n", s->fd, position);   // DEBUGING
-    }
+        fprintf(stderr, "proto_server_mt_move_handler: Recieved:\n"
+                        "    pId: %d\n    move #%c#\n", player_id, move);
+
+    // TODO: call game logic
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
+
+    // Write rpc reply
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    h.sver.raw = server_gameData.version; 
+    h.gstate.v0.raw = server_gameData.state; 
     proto_session_hdr_marshall(s, &h);
 
-    // proto_session_body_marshall_int(s, 0x00000002);
-    // reply with message from TicTacToe
-    bzero(&reply[0], sizeof(reply));
-    if (TicTac < 2)
-        strncpy(reply, gameReplyMsg[TicTac], sizeof(reply) - 1 );
-    if (proto_session_body_marshall_bytes(s, sizeof(reply), &reply[0]) < 0 )
-        fprintf(stderr, "proto_server_mt_move_handler: "
-                "proto_session_body_marshall_bytes failed\n");
-
+    proto_session_body_marshall_int(s, dummy_reply);
     rc = proto_session_send_msg(s, 1);
 
-    if ( TicTac > 1 )
-        doUpdateClientsGame(1);
-    if ( TicTac == 2  ) // Game is over because of a successfull move
-    {
-        pthread_mutex_lock(&game_mutex);
-        resetGame();
-        pthread_mutex_unlock(&game_mutex);
-        pthread_mutex_lock(&gameMapVersion_mutex);
-        gameMapVersion.raw++;
-        pthread_mutex_unlock(&gameMapVersion_mutex);
-    }
-*/
+    // TODO: update subscribers
+    // doUpdateClientsGame(0);
+    return rc;
+}
+
+static int
+proto_server_mt_item_action_handler(Proto_Session *s)
+{
+    int rc, player_id;
+    char item, action;
+    int dummy_reply = 1;
+    Proto_Msg_Hdr h;
+
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_item_action_handler: invoked for session:\n");
+        // proto_session_dump(s);
+
+    // Read rpc message: pID, item, action 
+    proto_session_body_unmarshall_int(s, 0, &player_id);
+    proto_session_body_unmarshall_char(s, sizeof(int), &item);
+    proto_session_body_unmarshall_char(s, sizeof(int)+sizeof(char), &action);
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_move_handler: Recieved:\n"
+                        "    pId: %d\n    item #%c#\n    action #%c#\n", player_id, item, action);
+
+    // TODO: call game logic
+    // TODO: update game version if necesary
+    // pthread_mutex_lock(&server_data_mutex);
+    // pthread_mutex_unlock(&server_data_mutex);
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
+
+    // rpc reply
+    bzero(&h, sizeof(h));
+    h.type = proto_session_hdr_unmarshall_type(s);
+    h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    h.sver.raw = server_gameData.version; 
+    h.gstate.v0.raw = server_gameData.state; 
+    proto_session_hdr_marshall(s, &h);
+
+    proto_session_body_marshall_int(s, dummy_reply);
+    rc = proto_session_send_msg(s, 1);
+
+    // TODO: update subscribers
+    // doUpdateClientsGame(0);
     return rc;
 }
 
 static int
 proto_server_mt_leave_game_handler(Proto_Session *s)
 {
-    int rc = 1;
     Proto_Msg_Hdr h;
-    int qq = 1;
+    int rc;
+    int dummy_reply = 1;
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_leave_game_handler: invoked for session:\n");
     //proto_session_dump(s);
-/*
-    // remove player from TicTacToe Game
-    pthread_mutex_lock(&game_mutex);
-    qq = removePlayer(s->fd);
-    pthread_mutex_unlock(&game_mutex);
 
+    // Call game logic: remove player from game 
+    // TODO: update game version if necesary
+    // pthread_mutex_lock(&server_data_mutex);
+    // pthread_mutex_unlock(&server_data_mutex);
     if (proto_debug())
-        fprintf(stderr, "%d  quit() = %d\n", s->fd, qq); // DEBUGING
-*/
+        fprintf(stderr, "proto_server_mt_leave_game_handler: remove player reply:%d\n", 1);
+
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
+    h.sver.raw = server_gameData.version; 
+    h.gstate.v0.raw = server_gameData.state; 
     proto_session_hdr_marshall(s, &h);
 
-    proto_session_body_marshall_int(s, qq);
+    proto_session_body_marshall_int(s, dummy_reply);
     rc = proto_session_send_msg(s, 1);
-/*
-    // if rmovePlayer == 1. call update
-    if ( qq == 1  )
-    {
-        doUpdateClientsGame(1);
-        resetGame();
-        pthread_mutex_lock(&gameMapVersion_mutex);
-        gameMapVersion.raw++;
-        pthread_mutex_unlock(&gameMapVersion_mutex);
-    }
-*/
+
+    // TODO: update subscribers
+    // doUpdateClientsGame(0);
     return rc;
 }
 
@@ -778,6 +802,7 @@ proto_server_init(void)
     // set_up_actual_game rpc handlers
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_HELLO, proto_server_mt_join_game_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_MOVE, proto_server_mt_move_handler);
+    proto_server_set_req_handler( PROTO_MT_REQ_ITEM_ACTION, proto_server_mt_item_action_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_GOODBYE, proto_server_mt_leave_game_handler);
 
     proto_server_set_req_handler( PROTO_MT_REQ_NUM_HOME , proto_server_mt_numhome_handler  );
