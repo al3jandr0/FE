@@ -860,6 +860,7 @@ proto_server_init(void)
 }
 
 // For debuging event channel update Lists of deltas
+/*
 void printlist_Player( LinkedList *il)
 {
    int ii = 0;
@@ -886,5 +887,5 @@ void printlist_Cell( LinkedList *il)
       ii++;
    }
 }
-
+*/
 

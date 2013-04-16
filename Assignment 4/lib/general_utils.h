@@ -19,6 +19,16 @@ typedef struct
 
 } Deltas;
 
+/*
+  d. pointer to delta
+  p. pointer to any struct (Player, Cell, Item)
+  size. size in bytes of the struct pointed by p. 
+        Use sizeof(Player) if p points to a player struct
+        Use sizeof(Cell) if p points to a Cell struct
+        Use sizeof(Item) if p points to an Item`:w
+ struct
+*/
+
 extern int add_delta_player(Deltas *d, void *p, int size);
 extern int add_delta_cell(Deltas *d, void *p, int size);
 extern int add_delta_item(Deltas *d, void *p, int size);
