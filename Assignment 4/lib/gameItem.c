@@ -9,25 +9,31 @@
 #include "maze.h"
 #include "general_utils.h"
 
+//playerArray[MAX];
+
+//playerArray[playerID]->holdShovel = TRUE;
+
+
+
 extern int
 pickUpItem(int playerID, Deltas *d){
     if(Cell.containItem==true){
         
-        Item->itemPos->x=Player->PlayerPos->x;
-        Item.itemPos->y=Player->PlayerPos->y;
+        Item->itemPos->x=playerArray[playerID]->PlayerPos->x;
+        Item.itemPos->y=playerArray[playerID]->PlayerPos->y;
         
         if(Item->itType==Shovel){
             Item->hasAbility=true;
-            Player.holdShovel=true;
+           playerArray[playerID].holdShovel=true;
       
         
         }else if(Item->itType==Flag_Team1)||(Item->itType==Flag_Team2){
-            Player->holdFlag=true;
+            playerArray[playerID]->holdFlag=true;
             Item->hasAbility=false;
         }
         
         Cell.containItem=false;
-        add_delta_player(d, Player, sizeof(Player));
+        add_delta_player(d, playerArray[playerID], sizeof(Player));
         add_delta_cell(d, Cell, sizeof(Cell));
         add_delta_item(d, item, sizeof(item));
     return 1;
@@ -38,19 +44,22 @@ pickUpItem(int playerID, Deltas *d){
 
 extern int
 breakWall(int x, int y, Deltas *d){
-    if(Cell.C_Type==CT_Wall)&&(Player.holdShovel==true)
-    {
+    
+    Cell CheckCell =maze[x][y];
+    
+    
+    if(CheckCell->C_Type==CT_Wall)    {
        
-        Player->PlayerPos->x=Cell->Cell_Pos->x;
+       // Player->PlayerPos->x=CheckCell->Cell_Pos->x;
        
-        Player->PlayerPos->y=Cell->Cell_Pos->y;
+      //  Player->PlayerPos->y=CheckCell->Cell_Pos->y;
        
-        C_type=CT_Floor;
+        CheckCell->C_type=CT_Floor;
        
         Player->holdShovel=false;
        
         add_delta_player(d, Player, sizeof(Player));
-        add_delta_cell(d, Cell, sizeof(Cell));
+        add_delta_cell(d, CheckCell, sizeof(Cell));
         add_delta_item(d, item, sizeof(item));
         
         return 1;
@@ -65,7 +74,7 @@ breakWall(int x, int y, Deltas *d){
 extern int
 resetItem(Deltas *d, Item it){
     
-    if(i->itType=Shovel)
+    if(it->itType=Shovel)
     {
         //position to the base
        
@@ -89,13 +98,32 @@ resetItem(Deltas *d, Item it){
 
 
 extern int
-int dropItem(int playerID, Deltas *d, Item it)
-if(cell==CT_Floor)
+int dropItem(int playerID, Deltas *d, Item it){
+if(Cell->C_Type==CT_Floor)
 {
-    Cell->Cell_Pos->x=it->itemPos->x;
-    Cell->Cell_Pos->y=it->itemPos->y;
     
-    add_delta_player(d, Player, sizeof(Player));
+    /*
+     
+     if(playerarray[id]-> holdFlag == TRUE)
+     {
+     playerarray[id]-> item  == False
+     
+     }
+    
+    */
+    
+   // playerArray[playerID
+    //Cell->Cell_Pos->x=it->itemPos->x;
+    //Cell->Cell_Pos->y=it->itemPos->y;
+    if(playerArray[playerID]->holdFlag==TRUE)
+    {
+        playerArray[playerID]->holdFlag=FALSE;
+        
+    }
+    else if(playerArray[playerID]->holdShover=TRUE){
+        playerArray[playerID]->holdShovel=FALSE;
+    }
+    add_delta_player(d, playerArray[playerID], sizeof(Player));
     add_delta_cell(d, Cell, sizeof(Cell));
     add_delta_item(d, item, sizeof(item));
     
@@ -105,5 +133,5 @@ else
 {
     return -1;
 }
-
+}
 

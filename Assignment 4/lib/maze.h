@@ -31,7 +31,7 @@ typedef enum{
 typedef struct{
     itemType itType;
     Position itemPos;
-    bool hasAbility;
+    int hasAbility;
     
 }Item
 
@@ -41,9 +41,9 @@ typedef struct{
 	int ID;
 	int PID;
         char State;
-    bool holdFlag;
-    bool holdShovel;
-	//Object *o;  //fix for items
+    int holdFlag;
+    int holdShovel;
+    Object *o;  //fix for items
 }Player;
 
 /* update for player list
@@ -57,7 +57,7 @@ typedef struct{
 	Position Cell_Pos;
 	Player *p;
 	Team Cell_Team;
-        bool containItem;
+        int containItem;
 	//Object *o;  //fix for items
 }Cell;
 
