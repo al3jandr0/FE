@@ -14,10 +14,10 @@ typedef struct {
    int rows;
    int columns;
    char* maze;
-} Maze;
+} GameMaze;
 
 extern GameData gamedata;
-extern Maze themaze;
+extern GameMaze themaze;
 
 extern pthread_mutex_t client_data_mutex;
 extern pthread_mutex_t client_maze_mutex;

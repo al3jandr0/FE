@@ -225,7 +225,7 @@ proto_server_post_event(void)
 
 // Broadcasts changes in the game to Subscribers
 int
-doUpdateClientsGame(int updateMapVersion)
+doUpdateClientsGame(int updateMapVersion, Deltas *d)
 {
     Proto_Session *s;
     Proto_Msg_Hdr hdr;
@@ -245,8 +245,12 @@ doUpdateClientsGame(int updateMapVersion)
     proto_session_hdr_marshall(s, &hdr);
 
     // test
-    proto_server_test_msg(s);
+    proto_server_marshall_deltas(s, d);
+    // proto_server_test_msg(s);
     proto_server_post_event();
+
+    clean_deltas(d);
+    free(d);
     return 1;
 }
 
@@ -372,6 +376,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
 {
     int rc, player, dimy, dimx;
     Proto_Msg_Hdr h;
+    Deltas *d;
 
     player = 1;
     char dummy_maze[] = {'1','2','3','4','5','6','7','8','9'};
@@ -390,6 +395,11 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     proto_session_hdr_marshall(s, &h);
 
     // TODO: call game logic 
+    d = (Deltas*) malloc( sizeof(Deltas) );
+    init_deltas( d );
+    proto_server_test_deltas(d); // fills deltas with harcoded data for testing
+    //printlist_Player( d->player_l);
+    //printlist_Cell( d->cell_l);
     dimx = 3;//dimx = get_maze_dimx();
     dimy = 3;//dimy = get_maze_dimy();
 
@@ -413,7 +423,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
 
     rc = proto_session_send_msg(s,1);
     // TODO: update subscribers
-    doUpdateClientsGame(0);
+    doUpdateClientsGame(0, d);
     return rc;
 }
 
@@ -860,7 +870,6 @@ proto_server_init(void)
 }
 
 // For debuging event channel update Lists of deltas
-/*
 void printlist_Player( LinkedList *il)
 {
    int ii = 0;
@@ -887,5 +896,4 @@ void printlist_Cell( LinkedList *il)
       ii++;
    }
 }
-*/
 

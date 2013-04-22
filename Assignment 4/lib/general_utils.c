@@ -10,14 +10,14 @@ extern int add_delta_player(Deltas *d, void *p, int size)
 
 extern int add_delta_cell(Deltas *d, void *p, int size)
 {
-   d->player_l = list_add( d->cell_l, p, size );
+   d->cell_l = list_add( d->cell_l, p, size );
    d-> c_size++;
    return 1;
 }
 
 extern int add_delta_item(Deltas *d, void *p, int size)
 {
-   d->player_l = list_add( d->item_l, p, size );
+   d->item_l = list_add( d->item_l, p, size );
    d-> i_size++;
    return 1;
 }

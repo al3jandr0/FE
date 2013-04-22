@@ -34,7 +34,7 @@
 #include "protocol_event_msg.h"
 
 GameData gamedata;
-Maze themaze;
+GameMaze themaze;
 pthread_mutex_t client_data_mutex;
 pthread_mutex_t client_maze_mutex;
 

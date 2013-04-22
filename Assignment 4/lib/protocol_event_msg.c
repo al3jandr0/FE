@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -13,7 +12,101 @@
 
 #include "protocol_event_msg.h"
 #include "client_types.h"
+#include "maze.h"
+#include "general_utils.h"
 #include <stdio.h>
+
+// id     Team  x     y     state item  item 
+
+extern int
+proto_server_test_deltas(Deltas *d)
+{
+   Player p;
+   Cell c;
+
+   p.team = 1;
+   p.PlayerPos.x = 1;
+   p.PlayerPos.y = 2;
+   p.ID  = 10;
+   p.PID = 10;
+   p.State = 'J';
+   // p.holdFlag = 1;
+   // p.holdShovel = 0;
+
+   c.C_Type = 'C';
+   c.Cell_Pos.x = 1;
+   c.Cell_Pos.y = 1;
+   c.Cell_Team = 2;
+
+   add_delta_player(d, &p, sizeof(Player));
+   add_delta_cell(d, &c, sizeof(Cell));
+
+   return 1;
+}
+
+extern int
+proto_server_marshall_deltas(Proto_Session *s, Deltas *d)
+{
+   int ii, offset, extra;
+   char cells[3], p_infs[6], items[3];
+   LinkedList *ll;
+   Cell *cval;
+   Player *pval;
+   //Item *ival;
+ 
+   extra = 101;
+   if (proto_debug())
+      fprintf(stderr, "proto_client_event_update_handler: c_cell = %d, c_player = %d, c_citem = %d, " 
+                      "extra = %d\n", d->c_size, d->p_size, d->i_size, extra);
+
+   if (proto_session_body_marshall_int(s, d->c_size)   < 0)
+      fprintf(stderr, "proto_server_test_msg: proto_session_body_marshall_int failed\n");
+   if (proto_session_body_marshall_int(s, d->p_size) < 0)
+      fprintf(stderr, "proto_server_test_msg: proto_session_body_marshall_int failed\n");
+   if (proto_session_body_marshall_int(s, d->i_size)   < 0)
+      fprintf(stderr, "proto_server_test_msg: proto_session_body_marshall_int failed\n");
+   if (proto_session_body_marshall_int(s, extra)  < 0)
+      fprintf(stderr, "proto_server_test_msg: proto_session_body_marshall_int failed\n");
+
+   if (proto_debug())
+      fprintf(stderr, "proto_server_test_msg: Sending:\n");
+
+   ll = d->cell_l;
+   for ( ii = 0; ii < d->c_size; ii++ )
+   {
+      cval = (Cell*) ll->value; 
+      cells[0] = cval->C_Type;
+      cells[1] = (char)cval->Cell_Pos.x;
+      cells[2] = (char)cval->Cell_Pos.y;
+      if (proto_debug())
+         fprintf(stderr, "cell %d: #%c#, #%d#, #%d#\n", ii, cells[0], (int)cells[1], (int)cells[2] );
+      proto_session_body_marshall_bytes(s, 3, &cells[0]); 
+      ll = ll->next;
+   }
+   ll = d->player_l;
+   for ( ii = 0; ii < d->p_size; ii++ )
+   {
+      pval = (Player*) ll->value;
+      p_infs[0] = (char)pval->team; 
+      p_infs[1] = (char)pval->PlayerPos.x; 
+      p_infs[2] = (char)pval->PlayerPos.y; 
+      p_infs[3] = pval->State; 
+      p_infs[4] = 'Y'; // p_infs[4] = (pval->holdFlag)? 'Y':'N'; 
+      p_infs[5] = 'N'; // p_infs[5] = (pval->holdShovel)? 'Y':'N'; 
+      if (proto_debug())
+         fprintf(stderr, "player %d: #%d#, #%d#, #%d#, #%c#, #%c#, #%c#\n", 
+            pval->PID, (int)p_infs[0], (int)p_infs[1], (int)p_infs[2] , p_infs[3], p_infs[4], p_infs[5]);
+      proto_session_body_marshall_int(s, ii);
+      proto_session_body_marshall_bytes(s, 6, &p_infs[0]); 
+      ll = ll->next;
+   }
+   /* TODO: erite this part when items are ready
+   for ( ii = 0; ii < c_item; ii++ )
+   {
+      fprintf(stderr, "item %d: #%c#, #%c#, #%c#\n", ii, items[ii][0], items[ii][1], items[ii][2] );
+      proto_session_body_marshall_bytes(s, 3, &items[ii][0]); 
+   }*/
+}
 
 extern int
 proto_server_test_msg(Proto_Session *s )
@@ -112,7 +205,8 @@ proto_client_event_msg_unmarshall_v1( Proto_Session *s, int blen, unsigned long 
 	       fprintf(stderr, "proto_client_event_update_handler: unmarshall_bytes_failed\n");
 	    // update local maze        
 	    if (proto_debug())
-	       fprintf(stderr, "proto_client_event_update_handler: cellinfo %d %s\n", ii, &cellinfo[0] );
+	       fprintf(stderr, "proto_client_event_update_handler: cellinfo %d %c %d %d\n",
+                               ii, cellinfo[0], (int)cellinfo[1], (int)cellinfo[2]);
 	}
 
 	offset += 3*c_cell;
@@ -131,9 +225,9 @@ proto_client_event_msg_unmarshall_v1( Proto_Session *s, int blen, unsigned long 
 	    if (proto_session_body_unmarshall_bytes(s, offset + 10*ii + sizeof(int), 6, &playerinfo[0]) < 0)
 	       fprintf(stderr, "proto_client_event_update_handler: unmarshall_bytes_failed\n");
 	    if (proto_debug())
-	       fprintf(stderr, "proto_client_event_update_handler: player %d, id = %d\n", ii, playerId );
-	    if (proto_debug())
-	       fprintf(stderr, "proto_client_event_update_handler: playerinfo %d %s\n", ii, &playerinfo[0] );
+	       fprintf(stderr, "proto_client_event_update_handler: playerinfo deltaNo.%d: %d, %d, %d, %d, %c, %c, %c\n", 
+                               ii, playerId, (int)playerinfo[0], (int)playerinfo[1], (int)playerinfo[2], playerinfo[3], 
+                              playerinfo[4], playerinfo[5]);
 	}
 
 	offset += 10*c_player;
@@ -151,7 +245,8 @@ proto_client_event_msg_unmarshall_v1( Proto_Session *s, int blen, unsigned long 
 	       fprintf(stderr, "proto_client_event_update_handler: unmarshall_bytes_failed\n");
 	    // update local maze        
 	    if (proto_debug())
-	       fprintf(stderr, "proto_client_event_update_handler: iteminfo %d %s\n", ii, &iteminfo[0] );
+	       fprintf(stderr, "proto_client_event_update_handler: iteminfo %d %c %d %d\n",
+                               ii, iteminfo[0], (int)iteminfo[1], (int)iteminfo[2]);
 	}
 
 	return 1;
