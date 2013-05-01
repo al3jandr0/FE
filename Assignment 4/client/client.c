@@ -52,6 +52,20 @@ typedef struct ClientState
     Proto_Client_Handle ph;
 } Client;
 
+// for debuging
+int print_client_data() 
+{
+   pthread_mutex_lock(&client_data_mutex);
+
+   fprintf(stderr, "Game:\n   version: %llu\n   state: %d\n"
+                   "Player:\n   id: %d\n   team: %d\n   x: %d\n   y: %d\n   flag: %c\n   shovel: %c\n",
+                   gamedata.game_version, gamedata.game_state, playerdata.id, playerdata.team, 
+                   playerdata.x, playerdata.y, playerdata.state, playerdata.flag, playerdata.shovel);
+
+   pthread_mutex_unlock(&client_data_mutex);
+   return 1;
+}
+
 static int
 clientInit(Client *C)
 {
@@ -441,6 +455,11 @@ int doCMDS(Client *C, char *cmdInput)
         if ( strcmp(*(tokens + 0), "join") == 0 )
         {
             rc = proto_client_hello(C->ph); 
+            return rc;
+        }
+        if ( strcmp(*(tokens + 0), "printdata") == 0 )
+        {
+            rc = print_client_data(); 
             return rc;
         }
         if ( strcmp(*(tokens + 0), "connect") == 0 )

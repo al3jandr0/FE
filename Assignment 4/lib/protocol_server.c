@@ -374,7 +374,7 @@ proto_server_mt_null_handler(Proto_Session *s)
 static int
 proto_server_mt_join_game_handler(Proto_Session *s)
 {
-    int rc, player, dimy, dimx;
+    int rc, player, dimy, dimx, msg_playerId; 
     Proto_Msg_Hdr h;
     Deltas *d;
 
@@ -384,6 +384,14 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     if (proto_debug())
        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
     //proto_session_dump(s);
+
+    // read incoming message
+    proto_session_body_unmarshall_int(s, 0, &msg_playerId);
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_join_ganme_handler: Recieved:\n"
+                        "    pId: %d\n", msg_playerId);
+
+   // TODO: return if player_id < 0
 
     // prepare reply message
     bzero(&h, sizeof(s));

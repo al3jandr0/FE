@@ -46,6 +46,12 @@ doUpdateClients(void)
 char MenuString[] =
     "d/D-debug on/off u-update clients q-quit";
 
+int printServerData()
+{
+    pthread_mutex_lock(&server_data_mutex);
+    fprintf(stderr, "Game Version: %llu\n   Game State %d\n");
+    pthread_mutex_unlock(&server_data_mutex);
+}
 int
 docmd(char cmd)
 {
@@ -68,6 +74,9 @@ docmd(char cmd)
     case '\n':
     case ' ':
         rc = 1;
+        break;
+    case 'p':
+        rc = printServerData();
         break;
     default:
         printf("Unkown Command\n");
