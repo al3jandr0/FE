@@ -66,6 +66,7 @@ typedef enum
     Team2 = 2
 } Team;
 
+/*
 typedef struct
 {
     Team team;
@@ -74,6 +75,7 @@ typedef struct
     int State;
     Item *i;
 } Player;
+*/
 
 typedef struct
 {
@@ -81,11 +83,21 @@ typedef struct
 
 } Item;
 
+struct player
+{
+    int team;
+    Position PlayerPos;
+    int ID;
+    int State;
+    Item *i;
+    struct player *next;
+};
+
 typedef struct
 {
     Cell_Type C_Type;
     Position Cell_Pos;
-    Player *p;
+    struct player  *p;
     Team Cell_Team;
     Item *o;
     int occupied;
@@ -101,16 +113,6 @@ typedef struct
     int numOfHomes[2];
     Position dimensions;
 } Maze;
-
-struct player
-{
-    Team team;
-    Position PlayerPos;
-    int ID;
-    int State;
-    Item *i;
-    struct player *next;
-};
 
 struct player *head = NULL;
 struct player *curr = NULL;
@@ -247,7 +249,7 @@ void print_list(void)
 
 Maze maze;
 
-Player *PlayerList;
+//Player *PlayerList;
 //Player* PlayerList = malloc(MAX * sizeof(Player));
 
 //int homeCount0 = 0;
@@ -403,7 +405,7 @@ int start()
     if (playerCount > 2 && gamePlayingFlag == FALSE)
     {
         loadMap();
-        PlayerList = malloc(MAX * sizeof(Player));
+        //PlayerList = malloc(MAX * sizeof(Player));
         HomeList0 = malloc(MAX * sizeof(Cell));
         HomeList1 = malloc(MAX * sizeof(Cell));
         JailList0 = malloc(MAX * sizeof(Cell));
@@ -452,7 +454,27 @@ int stop()
 
     if (gamePlayingFlag == TRUE)
     {
-        free(PlayerList);
+        //free(PlayerList);
+
+        int i = 0, ret = 0;
+
+        struct player *ptr = NULL;
+
+        for (i = 0; i < MAX; i++)
+        {
+
+            ret = delete_from_list(i);
+
+            if (ret != 0)
+            {
+                printf("\n delete [val = %d] failed, no such element found\n", i);
+            }
+            else
+            {
+                printf("\n delete [val = %d]  passed \n", i);
+            }
+        }
+
 
         free(HomeList0);
 
@@ -652,41 +674,12 @@ int gameStat()
         */
 }
 
-int addPlayer (Deltas *d)
-{
-    Player newPlayer;
 
-    newPlayer.team = playerCount % 2;
-
-    Position newPlayerPos = findFreeHome(playerCount % 2);
-
-    if (newPlayerPos.x != NULL && newPlayerPos.y != NULL)
-    {
-        newPlayer.PlayerPos = newPlayerPos;
-
-        newPlayer.ID = playerCount;
-
-        Item tempItem;
-
-        newPlayer.i = NULL;
-
-        struct player *ptr = NULL;
-
-        add_to_list(playerCount++, true);
-
-        return playerCount;
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-Position findFreeHome(int team)
+Position* findFreeHome(int team)
 {
     int p = 0;
 
-    Position newPos;
+    Position *newPos = NULL;
 
     if (team = 0)
     {
@@ -694,8 +687,8 @@ Position findFreeHome(int team)
         {
             if (HomeList0[p].occupied != 1)
             {
-                newPos.x = HomeList0[p].Cell_Pos.x;
-                newPos.y = HomeList0[p].Cell_Pos.y;
+                newPos->x = HomeList0[p].Cell_Pos.x;
+                newPos->y = HomeList0[p].Cell_Pos.y;
                 HomeList0[p].occupied = 1;
                 return newPos;
                 //break;
@@ -709,8 +702,8 @@ Position findFreeHome(int team)
         {
             if (HomeList1[p].occupied != 1)
             {
-                newPos.x = HomeList1[p].Cell_Pos.x;
-                newPos.y = HomeList1[p].Cell_Pos.y;
+                newPos->x = HomeList1[p].Cell_Pos.x;
+                newPos->y = HomeList1[p].Cell_Pos.y;
                 HomeList1[p].occupied = 1;
                 return newPos;
                 //break;
@@ -718,10 +711,42 @@ Position findFreeHome(int team)
         }
     }
 
-    newPos.x = NULL;
-    newPos.y = NULL;
+    newPos->x = NULL;
+    newPos->y = NULL;
 
     return newPos;
+}
+
+int addPlayer() //(Deltas *d)
+{
+    struct player *newPlayer;
+
+    newPlayer->team = playerCount % 2;
+
+    Position *newPlayerPos = NULL;
+
+    newPlayerPos = findFreeHome(playerCount % 2);
+
+    if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+    {
+        newPlayer->PlayerPos = *newPlayerPos;
+
+        newPlayer->ID = playerCount;
+
+        Item tempItem;
+
+        newPlayer->i = NULL;
+
+        struct player *ptr = NULL;
+
+        add_to_list(playerCount++, true);
+
+        return playerCount;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int removePlayer (int playerID)//, Deltas *d)
@@ -730,12 +755,12 @@ int removePlayer (int playerID)//, Deltas *d)
 
     if (ret != 0)
     {
-        printf("\n Delete [player id = %d] failed, no such element found\n", i);
+        printf("\n Delete [player id = %d] failed, no such element found\n", playerID);
         return -1;
     }
     else
     {
-        printf("\n Delete [player id = %d] - Done. \n", i);
+        printf("\n Delete [player id = %d] - Done. \n", playerID);
         return 1;
     }
 
@@ -755,31 +780,31 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 {
     int p = 0;
 
-    if (tempPlayer.team == Team1)
+    if (tempPlayer->team == Team1)
     {
         for (p = 0; p < maze.numOfJails[0]; p++)
         {
             if (JailList0[p].occupied != 1)
             {
-                tempPlayer.PlayerPos.x = JailList0[p].Cell_Pos.x;
-                tempPlayer.PlayerPos.y = JailList0[p].Cell_Pos.y;
+                tempPlayer->PlayerPos.x = JailList0[p].Cell_Pos.x;
+                tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
                 JailList0[p].occupied = 1;
-                tempPlayer.State = 1;
+                tempPlayer->State = 1;
                 break;
             }
         }
     }
 
-    if (tempPlayer.team == Team2)
+    if (tempPlayer->team == Team2)
     {
         for (p = 0; p < maze.numOfJails[1]; p++)
         {
             if (JailList1[p].occupied != 1)
             {
-                tempPlayer.PlayerPos.x = JailList1[p].Cell_Pos.x;
-                tempPlayer.PlayerPos.y = JailList1[p].Cell_Pos.y;
+                tempPlayer->PlayerPos.x = JailList1[p].Cell_Pos.x;
+                tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
-                tempPlayer.State = 1;
+                tempPlayer->State = 1;
                 break;
             }
         }
@@ -787,15 +812,13 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 
 }
 
-void tagCheck(Player tempPlayer)
+void tagCheck(struct player *tempPlayer)
 {
-    Team tagger = tempPlayer.team;
+    Team tagger = tempPlayer->team;
 
     int k;
 
     struct player *ptr = NULL;
-
-    ptr = search_in_list(i, NULL);
 
     for (k = 0; k < MAX; k++)
     {
@@ -809,11 +832,11 @@ void tagCheck(Player tempPlayer)
         {
             debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
 
-            if (ptr.team != tagger)
+            if (ptr->team != tagger)
             {
-                if ((ptr.PlayerPos.x ==  tempPlayer.PlayerPos.x) && (ptr.PlayerPos.y ==  tempPlayer.PlayerPos.y))
+                if ((ptr->PlayerPos.x ==  tempPlayer->PlayerPos.x) && (ptr->PlayerPos.y ==  tempPlayer->PlayerPos.y))
                 {
-                    if (ptr.PlayerPos.x > MAX / 2 && tagger == Team1)
+                    if (ptr->PlayerPos.x > MAX / 2 && tagger == Team1)
                         jailPlayer(tempPlayer);
                     else
                         jailPlayer(ptr);
@@ -837,7 +860,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 
         if (NULL == ptr)
         {
-            debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+            debugPrint("\n Search [playerID = %d] failed, no such element found\n", playerID);
         }
         else
         {
@@ -846,16 +869,16 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
         }
 
         // jail check
-        if (ptr.State == 0)
+        if (ptr->State == 0)
         {
 
-            Cell tempCell = cellInfo(ptr.PlayerPos.x, ptr.PlayerPos.y);
+            Cell tempCell = cellInfo(ptr->PlayerPos.x, ptr->PlayerPos.y);
 
             // IDid move check
             if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
 
             {
-                ptr.PlayerPos.y--;
+                ptr->PlayerPos.y--;
 
                 // tagging check
                 tagCheck(ptr);
@@ -867,7 +890,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             // IDid move check
             if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
             {
-                ptr.PlayerPos.y++;
+                ptr->PlayerPos.y++;
 
                 // tagging check
                 tagCheck(ptr);
@@ -878,7 +901,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             // IDid move check
             if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
             {
-                ptr.PlayerPos.x--;
+                ptr->PlayerPos.x--;
 
                 // tagging check
                 tagCheck(ptr);
@@ -889,7 +912,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             // IDid move check
             if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
             {
-                ptr.PlayerPos.x++;
+                ptr->PlayerPos.x++;
 
                 // tagging check
                 tagCheck(ptr);
@@ -900,10 +923,10 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             return -1; // In jail
     }
     //else
-        return -1;
+    return -1;
 }
 
-char *formatMaze()
+char * formatMaze()
 {
     int x = (maze.dimensions.y * maze.dimensions.x);
 
