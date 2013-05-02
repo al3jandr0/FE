@@ -654,7 +654,6 @@ int gameStat()
 
 int addPlayer (Deltas *d)
 {
-
     Player newPlayer;
 
     newPlayer.team = playerCount % 2;
@@ -685,7 +684,6 @@ int addPlayer (Deltas *d)
 
 Position findFreeHome(int team)
 {
-
     int p = 0;
 
     Position newPos;
@@ -728,7 +726,6 @@ Position findFreeHome(int team)
 
 int removePlayer (int playerID)//, Deltas *d)
 {
-
     int ret = delete_from_list(playerID);
 
     if (ret != 0)
@@ -756,7 +753,6 @@ int removePlayer (int playerID)//, Deltas *d)
 
 void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 {
-
     int p = 0;
 
     if (tempPlayer.team == Team1)
@@ -794,7 +790,6 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 void tagCheck(Player tempPlayer)
 {
     Team tagger = tempPlayer.team;
-
 
     int k;
 
@@ -834,74 +829,78 @@ void tagCheck(Player tempPlayer)
 int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
-    struct player *ptr = NULL;
-
-    ptr = search_in_list(playerID, NULL);
-
-    if (NULL == ptr)
+    if (gamePlayingFlag == TRUE)
     {
-        debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+        struct player *ptr = NULL;
+
+        ptr = search_in_list(playerID, NULL);
+
+        if (NULL == ptr)
+        {
+            debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+        }
+        else
+        {
+            debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
+
+        }
+
+        // jail check
+        if (ptr.State == 0)
+        {
+
+            Cell tempCell = cellInfo(ptr.PlayerPos.x, ptr.PlayerPos.y);
+
+            // IDid move check
+            if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+
+            {
+                ptr.PlayerPos.y--;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+
+            }
+
+            // IDid move check
+            if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr.PlayerPos.y++;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            // IDid move check
+            if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr.PlayerPos.x--;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            // IDid move check
+            if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr.PlayerPos.x++;
+
+                // tagging check
+                tagCheck(ptr);
+                return 1; // move made
+            }
+        }
+        else
+            return -1; // In jail
     }
-    else
-    {
-        debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
-
-    }
-
-    // jail check
-    if (ptr.State == 0)
-    {
-
-        Cell tempCell = cellInfo(ptr.PlayerPos.x, ptr.PlayerPos.y);
-
-        // IDid move check
-        if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-
-        {
-            ptr.PlayerPos.y--;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-
-        }
-
-        // IDid move check
-        if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.y++;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-        }
-
-        // IDid move check
-        if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.x--;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-        }
-
-        // IDid move check
-        if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.x++;
-
-            // tagging check
-            tagCheck(ptr);
-            return 1; // move made
-        }
-    }
-    else
-        return -1; // In jail
-
+    //else
+        return -1;
 }
 
 char *formatMaze()
@@ -947,9 +946,9 @@ int dimY()
 
 addToMap()
 {
-    // Player Array 
+    // Player Array
     // Items Array
-    // to maze 
+    // to maze
     // maze[player.x][player.y] = 'p'
     // maze[item.x][item.y] = 'item.type'
 }
