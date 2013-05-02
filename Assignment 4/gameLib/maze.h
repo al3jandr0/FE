@@ -1,7 +1,7 @@
 #ifndef __DAGAME_MAZE__
 #define __DAGAME_MAZE__
 
-#define MAX = 200;
+#define MAX 200
 //extern Maze maze;
 
 typedef struct

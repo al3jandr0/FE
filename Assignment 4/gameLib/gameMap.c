@@ -31,17 +31,23 @@ enum { FALSE, TRUE };
 int gamePlayingFlag = FALSE;
 
 int playerCount = 0;
-Player *PlayerList = malloc(MAX *sizeof *PlayerList);
+
+Player *PlayerList;
+//Player* PlayerList = malloc(MAX * sizeof(Player));
 
 //int homeCount0 = 0;
-Cell *HomeList0 = malloc(MAX *sizeof *HomeList0);
+Cell *HomeList0;
+//Cell* HomeList0 = malloc(MAX * sizeof(Cell));
 //int homeCount1 = 0;
-Cell *HomeList1 = malloc(MAX *sizeof *HomeList1);
+Cell *HomeList1;
+//Cell* HomeList1 = malloc(MAX * sizeof(Cell));
 
 //int jailCount0 = 0;
-Cell *JailList0 = malloc(MAX *sizeof *JailList0);
+Cell *JailList0;
+//Cell* JailList0 = malloc(MAX * sizeof(Cell));
 //int jailCount1 = 0;
-Cell *JailList1 = malloc(MAX *sizeof *JailList1);
+Cell *JailList1;
+//Cell* JailList1 =  malloc(MAX * sizeof(Cell));
 
 /*
 Cell *HomeList0 = malloc(numOfHomes[0] * sizeof *HomeList0);
@@ -57,6 +63,11 @@ int start()
     if (playerCount > 2 && gamePlayingFlag == FALSE)
     {
         loadMap();
+        PlayerList = malloc(MAX * sizeof(Player));
+        HomeList0 = malloc(MAX * sizeof(Cell));
+        HomeList1 = malloc(MAX * sizeof(Cell));
+        JailList0 = malloc(MAX * sizeof(Cell));
+        JailList1 = malloc(MAX * sizeof(Cell));
         gamePlayingFlag = TRUE;
         return 1;
 
@@ -75,22 +86,22 @@ void stop()
         free(PlayerList[x]);
     }
 
-    for (x = 0; x < numOfHomes[0]; x++)
+    for (x = 0; x < maze.numOfHomes[0]; x++)
     {
         free(HomeList0[x]);
     }
 
-    for (x = 0; x < numOfHomes[1]; x++)
+    for (x = 0; x < maze.numOfHomes[1]; x++)
     {
         free(HomeList1[x]);
     }
 
-    for (x = 0; x < numOfJails[0]; x++)
+    for (x = 0; x < maze.numOfJails[0]; x++)
     {
         free(JailList0[x]);
     }
 
-    for (x = 0; x < numOfJails[1]; x++)
+    for (x = 0; x < maze.numOfJails[1]; x++)
     {
         free(JailList1[x]);
     }
@@ -98,10 +109,10 @@ void stop()
     free(maze);
 
     playerCount = 0;
-    homeCount0 = 0;
-    homeCount1 = 0;
-    jailCount0 = 0;
-    jailCount1 = 0;
+    // homeCount0 = 0;
+    // homeCount1 = 0;
+    // jailCount0 = 0;
+    // jailCount1 = 0;
 
     gamePlayingFlag = FALSE;
 
@@ -109,13 +120,13 @@ void stop()
 
 //extern Maze
 
-void loadMap()
+int loadMap()
 {
     FILE *mapFile;
     if ((mapFile = fopen("daGame.map", "r")) == NULL)
     {
         printf("Cannot open file.\n");
-        return maze;
+        return -1;
     }
 
     int c;
@@ -149,55 +160,55 @@ void loadMap()
             newCell.C_Type = c;
             newCell.Cell_Pos.x = currentIndex / maze.dimensions.x;
             newCell.Cell_Pos.y = currentIndex % maze.dimensions.y;
-            if (newCell.Cell_Pos.y < (MAX / 2)
-        {
-            newCell.Cell_Team = Team1;
-        }
-        else
-        {
-            newCell.Cell_Team = Team2;
-        }
-        newCell.p = NULL;
-        maze.cells[currentIndex] = newCell;
+            if (newCell.Cell_Pos.y < (MAX / 2))
+            {
+                newCell.Cell_Team = Team1;
+            }
+            else
+            {
+                newCell.Cell_Team = Team2;
+            }
+            newCell.p = NULL;
+            maze.cells[currentIndex] = newCell;
 
-        Item newItem;
+            Item newItem;
 
-        if (c == 's' || c == 'S' || c == 'F' || c == 'f')
-        {
-            newItem.Type = c;
-        }
+            if (c == 's' || c == 'S' || c == 'F' || c == 'f')
+            {
+                newItem.Type = c;
+            }
 
-        if (c == '#')
-        {
-            maze.numWall++;
-        }
-        else
-        {
-            maze.numFloor++;
-        }
+            if (c == '#')
+            {
+                maze.numWall++;
+            }
+            else
+            {
+                maze.numFloor++;
+            }
 
-        if (c == 'j')
-        {
+            if (c == 'j')
+            {
 
-            JailList0[maze.numOfJails[0]] = newCell;
+                JailList0[maze.numOfJails[0]] = newCell;
                 maze.numOfJails[0]++;
 
 
             }
             else if (c == 'J')
-        {
-            JailList1[maze.numOfJails[1]] = newCell;
+            {
+                JailList1[maze.numOfJails[1]] = newCell;
                 maze.numOfJails[1]++;
             }
             else if (c == 'h')
-        {
-            HomeList0[maze.numOfHomes[0]] = newCell;
+            {
+                HomeList0[maze.numOfHomes[0]] = newCell;
 
                 maze.numOfHomes[0]++;
             }
             else if (c == 'H')
-        {
-            HomeList0[maze.numOfHomes[1]] = newCell;
+            {
+                HomeList0[maze.numOfHomes[1]] = newCell;
 
                 maze.numOfHomes[1]++;
             }
@@ -211,14 +222,17 @@ void loadMap()
     }
     fclose(mapFile);
     //return maze;
-    return;
+
+    return 1;
 }
 
 //extern void
 void dumpMap()
 {
     int x = (maze.dimensions.y * maze.dimensions.x);
-    for (int i = 0; i < (x); i++)
+    int i = 0;
+
+    for (i = 0; i < (x); i++)
     {
 
         int c =  maze.cells[i].C_Type;
@@ -240,15 +254,32 @@ void dumpMap()
 int gameStat()
 {
 
-    return 4; // Team 2 wins
+    /*
+    // flag location
+    int temp = 0;
 
-    return 3; // Team 1 wins
+    for ()
+    {
 
-    return 2; // Game is a Draw
+    }
 
-    return 1; // Game started
+    2
 
-    return 0; // Game not started
+
+    if (teamWins() == 2)
+
+        return 4; // Team 2 wins
+
+    if (teamWins() == 1)
+        return 3; // Team 1 wins
+
+    if (teamWins() == 2)
+        return 2; // Game is a Draw
+
+        return 1; // Game started
+
+        return 0; // Game not started
+        */
 }
 
 int addPlayer (Deltas *d)
@@ -294,11 +325,11 @@ Position findFreeHome(int team)
     {
         for (p = 0; p < maze.numOfHomes[0]; p++)
         {
-            if (homeCount0[p].occupied != 1)
+            if (HomeList0[p].occupied != 1)
             {
-                newPos.x = homeCount0[p].Cell_Pos.x;
-                newPos.y = homeCount0[p].Cell_Pos.y;
-                homeCount0[p].occupied = 1;
+                newPos.x = HomeList0[p].Cell_Pos.x;
+                newPos.y = HomeList0[p].Cell_Pos.y;
+                HomeList0[p].occupied = 1;
                 return newPos;
                 //break;
             }
@@ -309,11 +340,11 @@ Position findFreeHome(int team)
     {
         for (p = 0; p < maze.numOfHomes[1]; p++)
         {
-            if (homeCount1[p].occupied != 1)
+            if (HomeList1[p].occupied != 1)
             {
-                newPos.x = homeCount1[p].Cell_Pos.x;
-                newPos.y = homeCount1[p].Cell_Pos.y;
-                homeCount1[p].occupied = 1;
+                newPos.x = HomeList1[p].Cell_Pos.x;
+                newPos.y = HomeList1[p].Cell_Pos.y;
+                HomeList1[p].occupied = 1;
                 return newPos;
                 //break;
             }
@@ -326,15 +357,18 @@ Position findFreeHome(int team)
     return newPos;
 }
 
-int removePlayer (int playerID, Deltas *d)
+int removePlayer (int playerID)//, Deltas *d)
 {
-    if (PlayerList[playerID] != NULL)
+    /*
+    if (PlayerList[playerID] == NULL)
     {
-        free(PlayerList[playerID]);
-        return 1;
+        return -1;
     }
     else
-        return -1;
+    {*/
+        free(PlayerList[playerID]);
+        return 1;
+    //}
 }
 
 void jailPlayer(Player tempPlayer)
@@ -383,7 +417,7 @@ void tagCheck(Player tempPlayer)
     {
         if (PlayerList[k].team != tagger)
         {
-            if (PlayerList[k].PlayerPos ==  tempPlayer.PlayerPos)
+            if ((PlayerList[k].PlayerPos.x ==  tempPlayer.PlayerPos.x) && (PlayerList[k].PlayerPos.y ==  tempPlayer.PlayerPos.y))
             {
                 if (PlayerList[k].PlayerPos.x > MAX / 2 && tagger == Team1)
                     jailPlayer(tempPlayer);
@@ -396,20 +430,20 @@ void tagCheck(Player tempPlayer)
     return;
 }
 
-int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
+int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
     // jail check
     if (PlayerList[playerID].State == 0)
     {
 
-        Cell tempCell = cellInfo(PlayerList[playerID].x, PlayerList[playerID].y)
+        Cell tempCell = cellInfo(PlayerList[playerID].PlayerPos.x, PlayerList[playerID].PlayerPos.y);
 
-                        // valid move check
-                        if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+        // valid move check
+        if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
 
         {
-            PlayerList[playerID].y--;
+            PlayerList[playerID].PlayerPos.y--;
 
             // tagging check
             tagCheck(PlayerList[playerID]);
@@ -421,7 +455,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
         // valid move check
         if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].y++;
+            PlayerList[playerID].PlayerPos.y++;
 
             // tagging check
             tagCheck(PlayerList[playerID]);
@@ -432,7 +466,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
         // valid move check
         if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].x--;
+            PlayerList[playerID].PlayerPos.x--;
 
             // tagging check
             tagCheck(PlayerList[playerID]);
@@ -443,7 +477,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
         // valid move check
         if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].x++;
+            PlayerList[playerID].PlayerPos.x++;
 
             // tagging check
             tagCheck(PlayerList[playerID]);
@@ -495,6 +529,7 @@ int dimY()
     return maze.dimensions.y;
 }
 
+/*
 //extern int
 int pickUpItem(int playerID, Deltas *d)
 {
@@ -583,22 +618,23 @@ int resetItem(Deltas *d, Item it)
     }
 }
 
-
+*/
+/*
 //extern int
 int dropItem(int playerID, Deltas *d, Item it)
 {
     if (Cell->C_Type == CT_Floor)
     {
 
-        /*
 
-         if(playerarray[id]-> holdFlag == TRUE)
-         {
-         playerarray[id]-> item  == False
 
-         }
+        // if(playerarray[id]-> holdFlag == TRUE)
+        // {
+        // playerarray[id]-> item  == False
 
-        */
+        // }
+
+
 
         // playerArray[playerID
         //Cell->Cell_Pos->x=it->itemPos->x;
@@ -623,3 +659,5 @@ int dropItem(int playerID, Deltas *d, Item it)
         return -1;
     }
 }
+
+*/
