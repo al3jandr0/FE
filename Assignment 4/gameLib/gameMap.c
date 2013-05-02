@@ -22,15 +22,225 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
-#include "maze.h"
-#include "maze.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <strings.h>
+#include <errno.h>
+#include <pthread.h>
 
 enum { FALSE, TRUE };
 
 int gamePlayingFlag = FALSE;
 
 int playerCount = 0;
+
+#define MAX 200
+
+typedef struct
+{
+    int x;
+    int y;
+} Position;
+
+typedef enum
+{
+    CT_Floor = ' ',
+    CT_Wall = '#',
+    CT_Jailj = 'j',
+    CT_JailJ = 'J',
+    CT_Homeh = 'h',
+    CT_HomeH = 'H',
+} Cell_Type;
+
+typedef enum
+{
+    Team1 = 1,
+    Team2 = 2
+} Team;
+
+typedef struct
+{
+    Team team;
+    Position PlayerPos;
+    int ID;
+    int State;
+    Item *i;
+} Player;
+
+typedef struct
+{
+    int Type;
+
+} Item;
+
+typedef struct
+{
+    Cell_Type C_Type;
+    Position Cell_Pos;
+    Player *p;
+    Team Cell_Team;
+    Item *o;
+    int occupied;
+} Cell;
+
+typedef struct
+{
+    Cell *cells;
+    int numFloor;
+    int numWall;
+    int numCells;
+    int numOfJails[2];
+    int numOfHomes[2];
+    Position dimensions;
+} Maze;
+
+struct player
+{
+    Team team;
+    Position PlayerPos;
+    int ID;
+    int State;
+    Item *i;
+    struct player *next;
+};
+
+struct player *head = NULL;
+struct player *curr = NULL;
+
+struct player *create_list(int ID)
+{
+    printf("\n creating player list with headnode as [%d]\n", ID);
+    struct player *ptr = (struct player *)malloc(sizeof(struct player));
+    if (NULL == ptr)
+    {
+        printf("\n Node creation failed \n");
+        return NULL;
+    }
+    ptr->ID = ID;
+    ptr->next = NULL;
+
+    head = curr = ptr;
+    return ptr;
+}
+
+struct player *add_to_list(int ID, bool add_to_end)
+{
+    if (NULL == head)
+    {
+        return (create_list(ID));
+    }
+
+    if (add_to_end)
+        printf("\n Adding player to end of list with id [%d]\n", ID);
+    else
+        printf("\n Adding player to beginning of list with id [%d]\n", ID);
+
+    struct player *ptr = (struct player *)malloc(sizeof(struct player));
+    if (NULL == ptr)
+    {
+        printf("\n Node creation failed \n");
+        return NULL;
+    }
+    ptr->ID = ID;
+    ptr->next = NULL;
+
+    if (add_to_end)
+    {
+        curr->next = ptr;
+        curr = ptr;
+    }
+    else
+    {
+        ptr->next = head;
+        head = ptr;
+    }
+    return ptr;
+}
+
+struct player *search_in_list(int ID, struct player **prev)
+{
+    struct player *ptr = head;
+    struct player *tmp = NULL;
+    bool found = false;
+
+    printf("\n Searching the player list for ID [%d] \n", ID);
+
+    while (ptr != NULL)
+    {
+        if (ptr->ID == ID)
+        {
+            found = true;
+            break;
+        }
+        else
+        {
+            tmp = ptr;
+            ptr = ptr->next;
+        }
+    }
+
+    if (true == found)
+    {
+        if (prev)
+            *prev = tmp;
+        return ptr;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+int delete_from_list(int ID)
+{
+    struct player *prev = NULL;
+    struct player *del = NULL;
+
+    printf("\n Deleting player with id [%d] from list\n", ID);
+
+    del = search_in_list(ID, &prev);
+    if (del == NULL)
+    {
+        return -1;
+    }
+    else
+    {
+        if (prev != NULL)
+            prev->next = del->next;
+
+        if (del == curr)
+        {
+            curr = prev;
+        }
+        else if (del == head)
+        {
+            head = del->next;
+        }
+    }
+
+    free(del);
+    del = NULL;
+
+    return 0;
+}
+
+void print_list(void)
+{
+    struct player *ptr = head;
+
+    printf("\n -------Printing player list------- \n");
+    while (ptr != NULL)
+    {
+        printf("\n [%d] \n", ptr->ID);
+        ptr = ptr->next;
+    }
+    return;
+}
+
+Maze maze;
 
 Player *PlayerList;
 //Player* PlayerList = malloc(MAX * sizeof(Player));
@@ -56,6 +266,131 @@ Cell *HomeList1 = malloc(numOfHomes[1] * sizeof *HomeList1);
 Cell *JailList0 = malloc(numOfJails[0] * sizeof *JailList0);
 Cell *JailList1 = malloc(numOfJails[1] * sizeof *JailList1);
 */
+
+
+//extern int
+int findNumHome(int par)
+{
+    if (par == 1)
+    {
+        return maze.numOfHomes[0];
+    }
+    else if (par == 2)
+    {
+        return maze.numOfHomes[1];
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+//extern int
+int findNumJail(int par)
+{
+    if (par == 1)
+    {
+        return maze.numOfJails[0];
+    }
+    else if (par == 2)
+    {
+        return maze.numOfJails[1];
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+//extern int
+int findNumWall()
+{
+    return maze.numWall;
+}
+
+//extern int
+int findNumFloor()
+{
+    return maze.numFloor;
+}
+
+
+//extern void
+void findDimensions(Position *pos)
+{
+    pos->x = maze.dimensions.x;
+    pos->y = maze.dimensions.y;
+}
+
+//extern void
+void findCInfo(int column, int row)
+{
+    int pos;
+    if (row == 0 && column == 0)
+    {
+        pos = 0;
+    }
+    else if (row == 0)
+    {
+        pos = column;
+    }
+    else if (column == 0)
+    {
+        pos = row * maze.dimensions.y;
+    }
+    else
+    {
+        pos = row * MAX + column;
+    }
+    maze.cells[pos];
+    printf("\nCell Info for (%d,%d)-(column,row) is:\nCell Type is '%c',  Cell Team is %d, ", column, row, maze.cells[pos].C_Type, maze.cells[pos].Cell_Team);
+    if (maze.cells[pos].p == NULL)
+    {
+        printf("Cell Is Not Occupied\n");
+    }
+    else
+    {
+        printf("Cell Is Occupied\n");
+    }
+}
+
+
+//extern Cell
+Cell cellInfo(int column, int row)
+{
+    int pos;
+    if (row == 0 && column == 0)
+    {
+        pos = 0;
+    }
+    else if (row == 0)
+    {
+        pos = column;
+    }
+    else if (column == 0)
+    {
+        pos = row * maze.dimensions.y;
+    }
+    else
+    {
+        pos = row * MAX + column;
+    }
+
+    return maze.cells[pos];
+
+    /*
+    printf("\nCell Info for (%d,%d)-(column,row) is:\nCell Type is '%c',  Cell Team is %d, ", column, row, maze.cells[pos].C_Type, maze.cells[pos].Cell_Team);
+    
+    if (maze.cells[pos].p == NULL)
+    {
+        printf("Cell Is Not Occupied\n");
+    }
+    else
+    {
+        printf("Cell Is Occupied\n");
+    }
+    */
+}
 
 int start()
 {
@@ -453,7 +788,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 
         Cell tempCell = cellInfo(PlayerList[playerID].PlayerPos.x, PlayerList[playerID].PlayerPos.y);
 
-        // valid move check
+        // IDid move check
         if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
 
         {
@@ -466,7 +801,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 
         }
 
-        // valid move check
+        // IDid move check
         if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
             PlayerList[playerID].PlayerPos.y++;
@@ -477,7 +812,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             return 1; // move made
         }
 
-        // valid move check
+        // IDid move check
         if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
             PlayerList[playerID].PlayerPos.x--;
@@ -488,7 +823,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
             return 1; // move made
         }
 
-        // valid move check
+        // IDid move check
         if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
             PlayerList[playerID].PlayerPos.x++;
