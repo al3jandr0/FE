@@ -33,6 +33,11 @@
 
 enum { FALSE, TRUE };
 
+#define DEBUG FALSE
+
+#define debugPrint(...) \
+    do { if (DEBUG) fprintf(stderr, __VA_ARGS__); } while (0)
+
 int gamePlayingFlag = FALSE;
 
 int playerCount = 0;
@@ -112,7 +117,7 @@ struct player *curr = NULL;
 
 struct player *create_list(int ID)
 {
-    printf("\n creating player list with headnode as [%d]\n", ID);
+    debugPrint("\n creating player list with headnode as [%d]\n", ID);
     struct player *ptr = (struct player *)malloc(sizeof(struct player));
     if (NULL == ptr)
     {
@@ -134,9 +139,9 @@ struct player *add_to_list(int ID, bool add_to_end)
     }
 
     if (add_to_end)
-        printf("\n Adding player to end of list with id [%d]\n", ID);
+        debugPrint("\n Adding player to end of list with id [%d]\n", ID);
     else
-        printf("\n Adding player to beginning of list with id [%d]\n", ID);
+        debugPrint("\n Adding player to beginning of list with id [%d]\n", ID);
 
     struct player *ptr = (struct player *)malloc(sizeof(struct player));
     if (NULL == ptr)
@@ -166,7 +171,7 @@ struct player *search_in_list(int ID, struct player **prev)
     struct player *tmp = NULL;
     bool found = false;
 
-    printf("\n Searching the player list for ID [%d] \n", ID);
+    debugPrint("\n Searching the player list for ID [%d] \n", ID);
 
     while (ptr != NULL)
     {
@@ -199,7 +204,7 @@ int delete_from_list(int ID)
     struct player *prev = NULL;
     struct player *del = NULL;
 
-    printf("\n Deleting player with id [%d] from list\n", ID);
+    debugPrint("\n Deleting player with id [%d] from list\n", ID);
 
     del = search_in_list(ID, &prev);
     if (del == NULL)
@@ -380,7 +385,7 @@ Cell cellInfo(int column, int row)
 
     /*
     printf("\nCell Info for (%d,%d)-(column,row) is:\nCell Type is '%c',  Cell Team is %d, ", column, row, maze.cells[pos].C_Type, maze.cells[pos].Cell_Team);
-    
+
     if (maze.cells[pos].p == NULL)
     {
         printf("Cell Is Not Occupied\n");
