@@ -81,32 +81,46 @@ void stop()
 {
     int x;
 
-    for (x = 0; x < MAX; x++)
-    {
-        free(PlayerList[x]);
-    }
+    /*
 
-    for (x = 0; x < maze.numOfHomes[0]; x++)
-    {
-        free(HomeList0[x]);
-    }
+        for (x = 0; x < MAX; x++)
+        {
+            free(PlayerList[x]);
+        }
 
-    for (x = 0; x < maze.numOfHomes[1]; x++)
-    {
-        free(HomeList1[x]);
-    }
+        for (x = 0; x < maze.numOfHomes[0]; x++)
+        {
+            free(HomeList0[x]);
+        }
 
-    for (x = 0; x < maze.numOfJails[0]; x++)
-    {
-        free(JailList0[x]);
-    }
+        for (x = 0; x < maze.numOfHomes[1]; x++)
+        {
+            free(HomeList1[x]);
+        }
 
-    for (x = 0; x < maze.numOfJails[1]; x++)
-    {
-        free(JailList1[x]);
-    }
+        for (x = 0; x < maze.numOfJails[0]; x++)
+        {
+            free(JailList0[x]);
+        }
 
-    free(maze);
+        for (x = 0; x < maze.numOfJails[1]; x++)
+        {
+            free(JailList1[x]);
+        }
+
+    */
+
+    free(PlayerList);
+
+    free(HomeList0);
+
+    free(HomeList1);
+
+    free(JailList0);
+
+    free(JailList1);
+
+    free(maze.cells);
 
     playerCount = 0;
     // homeCount0 = 0;
@@ -366,8 +380,8 @@ int removePlayer (int playerID)//, Deltas *d)
     }
     else
     {*/
-        free(PlayerList[playerID]);
-        return 1;
+    free(PlayerList[playerID]);
+    return 1;
     //}
 }
 
