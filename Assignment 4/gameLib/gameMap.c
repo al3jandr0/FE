@@ -417,7 +417,7 @@ int start()
         return -1;
 }
 
-void stop()
+int stop()
 {
     int x;
 
@@ -450,25 +450,41 @@ void stop()
 
     */
 
-    free(PlayerList);
+    if (gamePlayingFlag == TRUE)
+    {
+        free(PlayerList);
 
-    free(HomeList0);
+        free(HomeList0);
 
-    free(HomeList1);
+        free(HomeList1);
 
-    free(JailList0);
+        free(JailList0);
 
-    free(JailList1);
+        free(JailList1);
 
-    free(maze.cells);
+        maze.numFloor = 0;
+        maze.numWall = 0;
+        maze.numCells = 0;
+        maze.numOfJails[0] = 0;
+        maze.numOfJails[1] = 0;
+        maze.numOfHomes[0] = 0;
+        maze.numOfHomes[1] = 0;
+        maze.dimensions.x = -1;
+        maze.dimensions.y = -1;
 
-    playerCount = 0;
-    // homeCount0 = 0;
-    // homeCount1 = 0;
-    // jailCount0 = 0;
-    // jailCount1 = 0;
+        free(maze.cells);
 
-    gamePlayingFlag = FALSE;
+        playerCount = 0;
+        // homeCount0 = 0;
+        // homeCount1 = 0;
+        // jailCount0 = 0;
+        // jailCount1 = 0;
+
+        gamePlayingFlag = FALSE;
+        return 1;
+    }
+    else
+        return -1;
 
 }
 
@@ -639,7 +655,7 @@ int gameStat()
 int addPlayer (Deltas *d)
 {
 
-    Player newPlayer
+    Player newPlayer;
 
     newPlayer.team = playerCount % 2;
 
@@ -651,13 +667,13 @@ int addPlayer (Deltas *d)
 
         newPlayer.ID = playerCount;
 
-        playerCount++;
-
         Item tempItem;
 
         newPlayer.i = NULL;
 
-        PlayerList [playerCount] = newPlayer;
+        struct player *ptr = NULL;
+
+        add_to_list(playerCount++, true);
 
         return playerCount;
     }
@@ -665,7 +681,6 @@ int addPlayer (Deltas *d)
     {
         return -1;
     }
-
 }
 
 Position findFreeHome(int team)
@@ -713,19 +728,33 @@ Position findFreeHome(int team)
 
 int removePlayer (int playerID)//, Deltas *d)
 {
+
+    int ret = delete_from_list(playerID);
+
+    if (ret != 0)
+    {
+        printf("\n Delete [player id = %d] failed, no such element found\n", i);
+        return -1;
+    }
+    else
+    {
+        printf("\n Delete [player id = %d] - Done. \n", i);
+        return 1;
+    }
+
     /*
-    if (PlayerList[playerID] == NULL)
+    if (ptr == NULL)
     {
         return -1;
     }
     else
     {*/
-    free(PlayerList[playerID]);
-    return 1;
+    //free(ptr);
+    //return 1;
     //}
 }
 
-void jailPlayer(Player tempPlayer)
+void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 {
 
     int p = 0;
@@ -766,19 +795,37 @@ void tagCheck(Player tempPlayer)
 {
     Team tagger = tempPlayer.team;
 
+
     int k;
+
+    struct player *ptr = NULL;
+
+    ptr = search_in_list(i, NULL);
+
     for (k = 0; k < MAX; k++)
     {
-        if (PlayerList[k].team != tagger)
+        ptr = search_in_list(k, NULL);
+
+        if (NULL == ptr)
         {
-            if ((PlayerList[k].PlayerPos.x ==  tempPlayer.PlayerPos.x) && (PlayerList[k].PlayerPos.y ==  tempPlayer.PlayerPos.y))
+            debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+        }
+        else
+        {
+            debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
+
+            if (ptr.team != tagger)
             {
-                if (PlayerList[k].PlayerPos.x > MAX / 2 && tagger == Team1)
-                    jailPlayer(tempPlayer);
-                else
-                    jailPlayer(PlayerList[k]);
+                if ((ptr.PlayerPos.x ==  tempPlayer.PlayerPos.x) && (ptr.PlayerPos.y ==  tempPlayer.PlayerPos.y))
+                {
+                    if (ptr.PlayerPos.x > MAX / 2 && tagger == Team1)
+                        jailPlayer(tempPlayer);
+                    else
+                        jailPlayer(ptr);
+                }
             }
         }
+
     }
 
     return;
@@ -787,20 +834,34 @@ void tagCheck(Player tempPlayer)
 int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
+    struct player *ptr = NULL;
+
+    ptr = search_in_list(playerID, NULL);
+
+    if (NULL == ptr)
+    {
+        debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+    }
+    else
+    {
+        debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
+
+    }
+
     // jail check
-    if (PlayerList[playerID].State == 0)
+    if (ptr.State == 0)
     {
 
-        Cell tempCell = cellInfo(PlayerList[playerID].PlayerPos.x, PlayerList[playerID].PlayerPos.y);
+        Cell tempCell = cellInfo(ptr.PlayerPos.x, ptr.PlayerPos.y);
 
         // IDid move check
         if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
 
         {
-            PlayerList[playerID].PlayerPos.y--;
+            ptr.PlayerPos.y--;
 
             // tagging check
-            tagCheck(PlayerList[playerID]);
+            tagCheck(ptr);
 
             return 1; // move made
 
@@ -809,10 +870,10 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
         // IDid move check
         if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].PlayerPos.y++;
+            ptr.PlayerPos.y++;
 
             // tagging check
-            tagCheck(PlayerList[playerID]);
+            tagCheck(ptr);
 
             return 1; // move made
         }
@@ -820,10 +881,10 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
         // IDid move check
         if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].PlayerPos.x--;
+            ptr.PlayerPos.x--;
 
             // tagging check
-            tagCheck(PlayerList[playerID]);
+            tagCheck(ptr);
 
             return 1; // move made
         }
@@ -831,10 +892,10 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
         // IDid move check
         if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
         {
-            PlayerList[playerID].PlayerPos.x++;
+            ptr.PlayerPos.x++;
 
             // tagging check
-            tagCheck(PlayerList[playerID]);
+            tagCheck(ptr);
             return 1; // move made
         }
     }
@@ -883,6 +944,16 @@ int dimY()
     return maze.dimensions.y;
 }
 
+
+addToMap()
+{
+    // Player Array 
+    // Items Array
+    // to maze 
+    // maze[player.x][player.y] = 'p'
+    // maze[item.x][item.y] = 'item.type'
+}
+
 /*
 //extern int
 int pickUpItem(int playerID, Deltas *d)
@@ -890,8 +961,8 @@ int pickUpItem(int playerID, Deltas *d)
     if (Cell.containItem == TRUE)
     {
 
-        Item->itemPos->x = PlayerList[playerID]->PlayerPos->x;
-        Item.itemPos->y = PlayerList[playerID]->PlayerPos->y;
+        Item->itemPos->x = ptr->PlayerPos->x;
+        Item.itemPos->y = ptr->PlayerPos->y;
 
         if (Item->itType == Shovel)
         {
@@ -900,7 +971,7 @@ int pickUpItem(int playerID, Deltas *d)
         }
         else if (Item->itType == Flag_Team1) || (Item->itType == Flag_Team2)
         {
-            PlayerList[playerID]->holdFlag = true;
+            ptr->holdFlag = true;
             Item->hasAbility = false;
         }
 
