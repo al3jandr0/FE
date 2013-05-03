@@ -109,44 +109,6 @@ proto_client_event_null_handler(Proto_Session *s)
     return 1;
 }
 /*
-static int
-proto_client_event_update_handler(Proto_Session *s)
-{
-    Proto_Msg_Hdr h;
-
-    if (proto_debug())
-        fprintf(stderr,
-                "proto_client_event_update_handler: invoked for session:\n");
-
-    bzero(&h, sizeof(h));
-    proto_session_hdr_unmarshall(s, &h);
-
-    // h.sver.raw  (ulong long ) version number 
-    // h.gstate.v0, v1, v2 (int) game state
-
-    if (proto_debug())
-        fprintf(stderr, "serverMapVersion = %llu\n", h.sver.raw);
-    pthread_mutex_lock(&gameMap_clientVersion_mutex);
-    if (h.sver.raw > gameMap_clientVersion.raw)
-    {
-        if (proto_debug())
-            fprintf(stderr, " previous gameMap_clientVersion = %llu\n", gameMap_clientVersion.raw);
-        gameMap_clientVersion.raw++; // ++ or equals ?
-        if (proto_session_body_unmarshall_bytes(s, 0, sizeof(gameMap_clientCopy), &gameMap_clientCopy[0]) < 0)
-            fprintf(stderr,
-                    "proto_client_event_update_handler: proto_session_body_unmarshall_bytes failed\n");
-
-        gameMap_clientCopy[sizeof(gameMap_clientCopy) - 1] = 0;
-
-        //map(&gameMap_clientCopy[0]);
-    }
-    pthread_mutex_unlock(&gameMap_clientVersion_mutex);
-
-    //proto_session_dump(s);
-
-    return 1;
-}*/
-/*
 Broadcast Message Format Version 1
 
 header: game_ver, game_state, count_cellinfo, count_playerinfo, count_iteminfo, extra?
@@ -191,7 +153,6 @@ proto_client_event_update_handler(Proto_Session *s)
           // {
               gamedata.game_version = h.sver.raw;
               // update all the maze
-              proto_client_event_msg_unmarshall_v1( s, h.blen, h.sver.raw, 0 );
           // }
 	  /* else if (h.sver.raw < gamedata.game_version) 
            {
