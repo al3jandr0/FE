@@ -67,3 +67,5 @@ ehthumbs.db
 Thumbs.db
 *.swp
 *.*~
+
+*.plist
