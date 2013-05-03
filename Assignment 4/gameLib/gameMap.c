@@ -400,7 +400,7 @@ Cell cellInfo(int column, int row)
     */
 }
 
-int start()
+int startGame()
 {
 
     if (playerCount > -1 && gamePlayingFlag == FALSE)
@@ -428,7 +428,7 @@ int start()
     return -1;
 }
 
-int stop()
+int stopGame()
 {
     int x;
 
@@ -675,7 +675,7 @@ int gameStat()
 
         return 1; // Game started
 
-        return 0; // Game not started
+        return -1; // Game not started
         */
 }
 
@@ -788,9 +788,8 @@ int addPlayer() //(Deltas *d)
             Item tempItem;
 
             newPlayer->i = NULL;
-            playerCount++;
 
-            return playerCount;
+            return playerCount++;
         }
     }
     return -1;
@@ -900,31 +899,35 @@ void tagCheck(struct player *tempPlayer)
 int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
+printf("\ngamePlayingFlag - %d\n", gamePlayingFlag);
+
     if (gamePlayingFlag == TRUE)
     {
         struct player *ptr = NULL;
 
+        printf("Looking for player - %d \n", playerID);
         ptr = search_in_list(playerID, NULL);
 
         if (NULL == ptr)
         {
             debugPrint("\n Search [playerID = %d] failed, no such element found\n", playerID);
+            return -1;
         }
         else
         {
             debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
-
         }
 
         // jail check
         if (ptr->State == 0)
         {
 
-            Cell tempCell = cellInfo(ptr->PlayerPos.x, ptr->PlayerPos.y);
+            Cell tempCell = cellInfo(ptr->PlayerPos.y, ptr->PlayerPos.x);
+
+            printf("tempCell type - %c\ntempCell location - %d, %d\n", tempCell.C_Type, tempCell.Cell_Pos.x, tempCell.Cell_Pos.y);
 
             // IDid move check
-            if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-
+            if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall && tempCell.C_Type != CT_Jailj && tempCell.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.y--;
 
@@ -1111,12 +1114,24 @@ int main(int argc, char const *argv[])
     //    addPlayerTest(200);
     //    homeAndJailTest();
 
-    start();
+    startGame();
+/*
+    int temp = addPlayer();
+    printf("Player id returned : %d\n", temp);
+    print_list();
 
-    addPlayer();
-    addPlayer();
 
-    //dumpMap();
+    movePlayer (temp, 'U');
+    print_list();
+    movePlayer (temp, 'D');
+    print_list();
+    movePlayer (temp, 'L');
+    print_list();
+    movePlayer (temp, 'R');
+    print_list();
+
+*/
+    dumpMap();
 
     return 0;
 }
