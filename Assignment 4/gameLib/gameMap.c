@@ -697,11 +697,11 @@ Position *findFreeHome(int team)
 
         for (p = 0; p < maze.numOfHomes[0]; p++)
         {
-            if (HomeList0[p].occupied != 1)
+            if (HomeList0[p].occupied != team)
             {
                 newPos->x = HomeList0[p].Cell_Pos.x;
                 newPos->y = HomeList0[p].Cell_Pos.y;
-                HomeList0[p].occupied = 1;
+                HomeList0[p].occupied = team;
                 printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
@@ -714,11 +714,11 @@ Position *findFreeHome(int team)
         printf("%s\n", "Team 1");
         for (p = 0; p < maze.numOfHomes[1]; p++)
         {
-            if (HomeList1[p].occupied != 1)
+            if (HomeList1[p].occupied != team)
             {
                 newPos->x = HomeList1[p].Cell_Pos.x;
                 newPos->y = HomeList1[p].Cell_Pos.y;
-                HomeList1[p].occupied = 1;
+                HomeList1[p].occupied = team;
                 printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
@@ -823,7 +823,7 @@ int removePlayer (int playerID)//, Deltas *d)
     //}
 }
 
-void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
+int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 {
     int p = 0;
 
@@ -837,7 +837,7 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
                 tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
                 JailList0[p].occupied = 1;
                 tempPlayer->State = 1;
-                break;
+                return 1;
             }
         }
     }
@@ -852,10 +852,12 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
                 tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
                 tempPlayer->State = 1;
-                break;
+                return 1;
             }
         }
     }
+
+    return -1;
 
 }
 
@@ -899,7 +901,7 @@ void tagCheck(struct player *tempPlayer)
 int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
-printf("\ngamePlayingFlag - %d\n", gamePlayingFlag);
+    printf("\ngamePlayingFlag - %d\n", gamePlayingFlag);
 
     if (gamePlayingFlag == TRUE)
     {
@@ -922,53 +924,103 @@ printf("\ngamePlayingFlag - %d\n", gamePlayingFlag);
         if (ptr->State == 0)
         {
 
-            Cell tempCell = cellInfo(ptr->PlayerPos.y, ptr->PlayerPos.x);
+            Cell tempCellXU = cellInfo((ptr->PlayerPos.y) + 0, (ptr->PlayerPos.x) - 1);
 
-            printf("tempCell type - %c\ntempCell location - %d, %d\n", tempCell.C_Type, tempCell.Cell_Pos.x, tempCell.Cell_Pos.y);
+            Cell tempCellXD = cellInfo((ptr->PlayerPos.y) + 0, (ptr->PlayerPos.x) + 1);
 
-            // IDid move check
-            if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall && tempCell.C_Type != CT_Jailj && tempCell.C_Type != CT_JailJ))
-            {
-                ptr->PlayerPos.y--;
+            Cell tempCellYL = cellInfo((ptr->PlayerPos.y) - 1, (ptr->PlayerPos.x) + 0);
 
-                // tagging check
-                tagCheck(ptr);
+            Cell tempCellYR = cellInfo((ptr->PlayerPos.y) + 1, (ptr->PlayerPos.x) + 0);
 
-                return 1; // move made
-
-            }
+            printf("\nTrying to do a %c\n", c);
+            printf("tempCellXU: type - %c\tlocation - %d, %d\n", tempCellXU.C_Type, tempCellXU.Cell_Pos.x, tempCellXU.Cell_Pos.y);
+            printf("tempCellXD: type - %c\tlocation - %d, %d\n", tempCellXD.C_Type, tempCellXD.Cell_Pos.x, tempCellXD.Cell_Pos.y);
+            printf("tempCellYL: type - %c\tlocation - %d, %d\n", tempCellYL.C_Type, tempCellYL.Cell_Pos.x, tempCellYL.Cell_Pos.y);
+            printf("tempCellYR: type - %c\tlocation - %d, %d\n", tempCellYR.C_Type, tempCellYR.Cell_Pos.x, tempCellYR.Cell_Pos.y);
 
             // IDid move check
-            if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-            {
-                ptr->PlayerPos.y++;
-
-                // tagging check
-                tagCheck(ptr);
-
-                return 1; // move made
-            }
-
-            // IDid move check
-            if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            if ((c == 'U' || c == 'u' || c == '1') && tempCellXU.occupied != ptr->team && (tempCellXU.C_Type != CT_Wall && tempCellXU.C_Type != CT_Jailj && tempCellXU.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.x--;
 
+                tempCellXU.occupied = ptr->team;
+
                 // tagging check
                 tagCheck(ptr);
 
                 return 1; // move made
             }
 
-            // IDid move check
-            if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            if ((c == 'D' || c == 'd' || c == '2') && tempCellXD.occupied != ptr->team && (tempCellXD.C_Type != CT_Wall && tempCellXD.C_Type != CT_Jailj && tempCellXD.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.x++;
 
+                tempCellXD.occupied = ptr->team;
+
                 // tagging check
                 tagCheck(ptr);
+
                 return 1; // move made
             }
+
+            if ((c == 'L' || c == 'l' || c == '3') && tempCellYL.occupied != ptr->team && (tempCellYL.C_Type != CT_Wall && tempCellYL.C_Type != CT_Jailj && tempCellYL.C_Type != CT_JailJ))
+            {
+                ptr->PlayerPos.y--;
+
+                tempCellYL.occupied = ptr->team;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            if ((c == 'R' || c == 'r' || c == '4') && tempCellYR.occupied != ptr->team && (tempCellYR.C_Type != CT_Wall && tempCellYR.C_Type != CT_Jailj && tempCellYR.C_Type != CT_JailJ))
+            {
+                ptr->PlayerPos.y++;
+
+                tempCellYR.occupied = ptr->team;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            /*
+                        // IDid move check
+                        if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+                        {
+                            ptr->PlayerPos.y++;
+
+                            // tagging check
+                            tagCheck(ptr);
+
+                            return 1; // move made
+                        }
+
+                        // IDid move check
+                        if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+                        {
+                            ptr->PlayerPos.x--;
+
+                            // tagging check
+                            tagCheck(ptr);
+
+                            return 1; // move made
+                        }
+
+                        // IDid move check
+                        if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+                        {
+                            ptr->PlayerPos.x++;
+
+                            // tagging check
+                            tagCheck(ptr);
+                            return 1; // move made
+                        }
+
+                        */
         }
         else
             return -1; // In jail
@@ -1108,6 +1160,31 @@ void homeAndJailTest()
     }
 }
 
+void moveTest(int num)
+{
+    int temp = 0;
+    int move = 0;
+    int i;
+
+    for (i = 0; i < num; ++i)
+    {
+        temp = addPlayer();
+        printf("Player id returned : %d\n", temp);
+        print_list();
+        move = movePlayer (temp, 'U');
+        printf("The move was - %d\n", move);
+        print_list();
+        move = movePlayer (temp, 'D');
+        printf("The move was - %d\n", move);
+        print_list();
+        move = movePlayer (temp, 'L');
+        printf("The move was - %d\n", move);
+        print_list();
+        move = movePlayer (temp, 'R');
+        printf("The move was - %d\n", move);
+        print_list();
+    }
+}
 int main(int argc, char const *argv[])
 {
 
@@ -1115,23 +1192,9 @@ int main(int argc, char const *argv[])
     //    homeAndJailTest();
 
     startGame();
-/*
-    int temp = addPlayer();
-    printf("Player id returned : %d\n", temp);
-    print_list();
 
-
-    movePlayer (temp, 'U');
-    print_list();
-    movePlayer (temp, 'D');
-    print_list();
-    movePlayer (temp, 'L');
-    print_list();
-    movePlayer (temp, 'R');
-    print_list();
-
-*/
-    dumpMap();
+    moveTest(3);
+    //dumpMap();
 
     return 0;
 }
