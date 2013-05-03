@@ -30,6 +30,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <pthread.h>
+//#include general_utils.c
 
 enum { FALSE, TRUE };
 
@@ -241,7 +242,7 @@ void print_list(void)
     printf("\n -------Printing player list------- \n");
     while (ptr != NULL)
     {
-        printf("\n [%d] \n", ptr->ID);
+        printf("\n Player Id : [%d] \n Player Team : [%d]\n Player Position : [%d,%d]\n Player State : [%d]\n", ptr->ID, ptr->team, ptr->PlayerPos.x, ptr->PlayerPos.y, ptr->State);
         ptr = ptr->next;
     }
     return;
@@ -675,14 +676,21 @@ int gameStat()
 }
 
 
-Position* findFreeHome(int team)
+Position *findFreeHome(int team)
 {
+
+    printf("Trying to find location for team %d\n", team);
+
     int p = 0;
 
     Position *newPos = NULL;
 
-    if (team = 0)
+    newPos = malloc(sizeof(Position));
+
+    if (team == 0)
     {
+        printf("%s\n", "Team 0");
+
         for (p = 0; p < maze.numOfHomes[0]; p++)
         {
             if (HomeList0[p].occupied != 1)
@@ -690,14 +698,16 @@ Position* findFreeHome(int team)
                 newPos->x = HomeList0[p].Cell_Pos.x;
                 newPos->y = HomeList0[p].Cell_Pos.y;
                 HomeList0[p].occupied = 1;
+                printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
             }
         }
     }
 
-    if (team = 1)
+    if (team == 1)
     {
+        printf("%s\n", "Team 1");
         for (p = 0; p < maze.numOfHomes[1]; p++)
         {
             if (HomeList1[p].occupied != 1)
@@ -705,48 +715,82 @@ Position* findFreeHome(int team)
                 newPos->x = HomeList1[p].Cell_Pos.x;
                 newPos->y = HomeList1[p].Cell_Pos.y;
                 HomeList1[p].occupied = 1;
+                printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
             }
         }
     }
 
-    newPos->x = NULL;
-    newPos->y = NULL;
+    newPos->x = 1;
+    newPos->y = 1;
+
+    printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
+
 
     return newPos;
 }
 
 int addPlayer() //(Deltas *d)
 {
-    struct player *newPlayer;
+    struct player *newPlayer = NULL;
 
-    newPlayer->team = playerCount % 2;
+    int i;
+    
+    int temp = 0;
 
-    Position *newPlayerPos = NULL;
+    struct player *ptr = NULL;
 
-    newPlayerPos = findFreeHome(playerCount % 2);
-
-    if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+    if (playerCount < MAX)
     {
-        newPlayer->PlayerPos = *newPlayerPos;
 
-        newPlayer->ID = playerCount;
-
-        Item tempItem;
-
-        newPlayer->i = NULL;
-
-        struct player *ptr = NULL;
-
-        add_to_list(playerCount++, true);
-
-        return playerCount;
     }
     else
     {
-        return -1;
+        for (i = 1; i < playerCount; i++)
+        {
+            ptr = search_in_list(i, NULL);
+
+            if (NULL == ptr)
+            {
+            }
+            else
+            {
+                temp++;
+            }
+        }
     }
+
+    if (temp < MAX)
+    {
+        printf("%s\n", "\nAdding Player!");
+
+        add_to_list(playerCount, true);
+
+        newPlayer = search_in_list(playerCount, NULL);
+
+        newPlayer->team = playerCount % 2;
+
+        Position *newPlayerPos = NULL;
+
+        newPlayerPos = findFreeHome(playerCount % 2);
+
+        if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+        {
+            newPlayer->PlayerPos = *newPlayerPos;
+
+            newPlayer->ID = playerCount;
+
+            Item tempItem;
+
+            newPlayer->i = NULL;
+            playerCount++;
+
+            return playerCount;
+        }
+    }
+    return -1;
+
 }
 
 int removePlayer (int playerID)//, Deltas *d)
@@ -926,7 +970,7 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
     return -1;
 }
 
-char * formatMaze()
+char *formatMaze()
 {
     int x = (maze.dimensions.y * maze.dimensions.x);
 
@@ -975,6 +1019,75 @@ addToMap()
     // maze[player.x][player.y] = 'p'
     // maze[item.x][item.y] = 'item.type'
 }
+
+int main(int argc, char const *argv[])
+{
+
+    int i;
+
+    for ( i = 0; i < 300; ++i)
+    {
+        if (i < 200)
+        {
+            addPlayer();
+        }
+        else
+            removePlayer(i - 100);
+    }
+
+
+    print_list();
+
+    int temp = 0;
+
+    struct player *ptr = NULL;
+
+    for (i = 0; i < playerCount; i++)
+    {
+        ptr = search_in_list(i, NULL);
+
+        if (NULL == ptr)
+        {
+        }
+        else
+        {
+            temp++;
+        }
+    }
+
+    printf("\nTotal player count is - %d\n", temp);
+
+    for ( i = 0; i < 500; ++i)
+    {
+
+        addPlayer();
+    }
+
+
+    print_list();
+
+    temp = 0;
+
+    ptr = NULL;
+
+    for (i = 0; i < playerCount; i++)
+    {
+        ptr = search_in_list(i, NULL);
+
+        if (NULL == ptr)
+        {
+        }
+        else
+        {
+            temp++;
+        }
+    }
+
+    printf("\nTotal player count is - %d\n", temp);
+
+    return 0;
+}
+
 
 /*
 //extern int

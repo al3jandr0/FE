@@ -38,6 +38,10 @@ typedef struct
 typedef struct
 {
     int Type;
+// 0 - No 
+    // 1 - S
+    // 2 - f
+    // 3 - F
 
 } Item;
 
