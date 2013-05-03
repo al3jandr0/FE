@@ -32,5 +32,4 @@ extern PlayerInfo playerdata;
 
 extern pthread_mutex_t client_data_mutex;
 extern pthread_mutex_t client_maze_mutex;
-extern pthread_spinlock_t client_data_spinlock;
 #endif

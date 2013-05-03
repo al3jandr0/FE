@@ -14,10 +14,9 @@ MODULE := $(shell basename $CURDIR)
 
 DAGAMELIBHDRS := types.h net.h dummy.h
 DAGAMELIBFILE := libdagame.a
-#DAGAMEMAPLIBFILE := libdagamemap.a
 DAGAMELIBARCHIVE := ../lib/$(DAGAMELIBFILE)
 DAGAMELIB := -L../lib -ldagame
-#DAGAMELIB := -L../lib -ldagame; -L../gameLib -ldagamemap
+
 
 src  = $(wildcard *.c)
 objs = $(patsubst %.c,%.o,$(src))

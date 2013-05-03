@@ -27,7 +27,7 @@ typedef struct{
 	Position PlayerPos;
 	int ID;
 	int PID;
-        int State;
+        char State;
 	// Object *o;  //fix for items
 }Player;
 

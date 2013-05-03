@@ -34,7 +34,6 @@
 #include "server_types.h"
 #include "protocol_event_msg.h"
 #include "general_utils.h"
-//#include "./../gameLib/maze.h"
 #include "./../lib/maze.h"
 
 #define PROTO_SERVER_MAX_EVENT_SUBSCRIBERS 1024
@@ -120,7 +119,6 @@ proto_server_record_event_subscriber(int fd, int *num)
 {
     int rc = -1;
 
-    fprintf(stderr, "hello says proto server record event subscriber\n");
     pthread_mutex_lock(&Proto_Server.EventSubscribersLock);
 
     if (Proto_Server.EventLastSubscriber < PROTO_SERVER_MAX_EVENT_SUBSCRIBERS
@@ -159,8 +157,7 @@ proto_server_event_listen(void *arg)
 {
     int fd = Proto_Server.EventListenFD;
     int connfd;
-    
-    fprintf(stderr, "hello says the event listener\n");
+
     if (net_listen(fd) < 0)
     {
         exit(-1);
@@ -237,15 +234,14 @@ doUpdateClientsGame(int updateMapVersion, Deltas *d)
         fprintf(stderr, "doUpdateClientsGame called\n"); 
 
     bzero(&hdr, sizeof(hdr));
-    s = proto_server_event_session();
-    hdr.type = PROTO_MT_EVENT_BASE_UPDATE;
 
-    pthread_mutex_lock(&server_data_mutex);
+    s = proto_server_event_session();
+    // set sver if nescesary
+    hdr.type = PROTO_MT_EVENT_BASE_UPDATE;
+    // pthread_spin_lock(&server_data_spinlock);
     hdr.sver.raw = server_gameData.version;
     hdr.gstate.v0.raw = server_gameData.state;
-    // stamp transaction number
-    pthread_mutex_unlock(&server_data_mutex);
-
+    // pthread_spin_unlock(&server_data_spinlock);
     proto_session_hdr_marshall(s, &hdr);
 
     // test
@@ -387,6 +383,7 @@ proto_server_mt_join_game_handler(Proto_Session *s)
 
     if (proto_debug())
        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
+    //proto_session_dump(s);
 
     // read incoming message
     proto_session_body_unmarshall_int(s, 0, &msg_playerId);
@@ -394,28 +391,29 @@ proto_server_mt_join_game_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_join_ganme_handler: Recieved:\n"
                         "    pId: %d\n", msg_playerId);
 
+   // TODO: return if player_id < 0
+
     // prepare reply message
     bzero(&h, sizeof(s));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-
-    pthread_mutex_lock(&server_data_mutex);
-
-    fprintf(stderr, "one \n");
-    d = (Deltas*) malloc( sizeof(Deltas) );
-    init_deltas(d);
-    fprintf(stderr, "two \n");
-    // TODO: call game logic set rc
-    // figure out game state
-    // update game version
+    // send to client the current state and version
     h.sver.raw = server_gameData.version; 
     h.gstate.v0.raw = server_gameData.state; 
-    // stamp transaction number
     proto_session_hdr_marshall(s, &h);
+
+    // TODO: call game logic 
+    d = (Deltas*) malloc( sizeof(Deltas) );
+    init_deltas( d );
     proto_server_test_deltas(d); // fills deltas with harcoded data for testing
-    fprintf(stderr, "three \n");
-    dimx = 3; // dimx = get_maze_dimx();
-    dimy = 3; // dimy = get_maze_dimy();
+    //printlist_Player( d->player_l);
+    //printlist_Cell( d->cell_l);
+    dimx = 3;//dimx = get_maze_dimx();
+    dimy = 3;//dimy = get_maze_dimy();
+
+    // TODO: update game version and state if necesary
+    // pthread_mutex_lock(&server_data_mutex);
+    // pthread_mutex_unlock(&server_data_mutex);
 
     // relpy: pID, xdim, ydim, maze
     if (proto_session_body_marshall_int(s, player) < 0)
@@ -431,12 +429,10 @@ proto_server_mt_join_game_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_join_game_handler: "
                 "proto_session_body_marshall_bytes failed\n");
 
-    // if (rc > 0)
+    rc = proto_session_send_msg(s,1);
+    // TODO: update subscribers
     doUpdateClientsGame(0, d);
-    fprintf(stderr, "four \n");
-    pthread_mutex_unlock(&server_data_mutex);
-    // reply to client 
-    return proto_session_send_msg(s,1);
+    return rc;
 }
 
 static int
@@ -835,11 +831,9 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_CELL_INFO, proto_server_mt_cinfo_handler    );
     proto_server_set_req_handler( PROTO_MT_REQ_MAP_DUMP , proto_server_mt_dump_handler     );
 
-    /*pthread_mutex_lock(&server_data_mutex);
-    server_gameData.state = -1; 
-    server_gameData.version = 0;
-    server_gameData.trs = 0;
-    pthread_mutex_unlock(&server_data_mutex);*/
+    //pthread_mutex_lock(&gameMapVersion_mutex);
+    //gameMapVersion.raw = 0;
+    //pthread_mutex_unlock(&gameMapVersion_mutex);
 
     for (i = 0; i < PROTO_SERVER_MAX_EVENT_SUBSCRIBERS; i++)
     {

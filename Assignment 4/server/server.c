@@ -27,8 +27,7 @@
 #include "../lib/types.h"
 #include "../lib/protocol_server.h"
 #include "../lib/protocol_utils.h"
-//#include "../gameLib/maze.h"
-//#include "../lib/maze.h"
+#include "../lib/maze.h"
 #include "../lib/server_types.h"
 
 int

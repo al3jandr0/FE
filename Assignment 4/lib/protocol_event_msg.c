@@ -12,7 +12,7 @@
 
 #include "protocol_event_msg.h"
 #include "client_types.h"
-#include "./../lib/maze.h"
+#include "maze.h"
 #include "general_utils.h"
 #include <stdio.h>
 
@@ -29,7 +29,7 @@ proto_server_test_deltas(Deltas *d)
    p.PlayerPos.y = 2;
    p.ID  = 10;
    p.PID = 10;
-   p.State = 4;
+   p.State = 'J';
    // p.holdFlag = 1;
    // p.holdShovel = 0;
 
@@ -90,12 +90,12 @@ proto_server_marshall_deltas(Proto_Session *s, Deltas *d)
       p_infs[0] = (char)pval->team; 
       p_infs[1] = (char)pval->PlayerPos.x; 
       p_infs[2] = (char)pval->PlayerPos.y; 
-      p_infs[3] = (char)pval->State; 
+      p_infs[3] = pval->State; 
       p_infs[4] = 'Y'; // p_infs[4] = (pval->holdFlag)? 'Y':'N'; 
       p_infs[5] = 'N'; // p_infs[5] = (pval->holdShovel)? 'Y':'N'; 
       if (proto_debug())
          fprintf(stderr, "player %d: #%d#, #%d#, #%d#, #%c#, #%c#, #%c#\n", 
-            pval->PID, (int)p_infs[0], (int)p_infs[1], (int)p_infs[2] , (int)p_infs[3], p_infs[4], p_infs[5]);
+            pval->PID, (int)p_infs[0], (int)p_infs[1], (int)p_infs[2] , p_infs[3], p_infs[4], p_infs[5]);
       proto_session_body_marshall_int(s, ii);
       proto_session_body_marshall_bytes(s, 6, &p_infs[0]); 
       ll = ll->next;
