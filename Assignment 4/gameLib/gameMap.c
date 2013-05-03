@@ -650,6 +650,45 @@ void dumpMap()
 
 int gameStat()
 {
+    int p;
+    int checker = 0;
+
+    if (gamePlayingFlag == FALSE)
+        return -1;
+
+
+    if (playerCount == 0 && gamePlayingFlag == TRUE)
+        return 2;
+
+    for (p = 0; p < maze.numOfJails[1]; p++)
+    {
+        if (JailList1[p].occupied == 1)
+        {
+            checker++;
+        }
+    }
+
+    if (checker == 0 ) //&&  flag1 == TRUE)
+        return 3;
+
+
+    checker = 0;
+
+
+    //return 4; // Team 2 wins
+    for (p = 0; p < maze.numOfJails[0]; p++)
+    {
+        if (JailList0[p].occupied == 1)
+        {
+            checker++;
+        }
+    }
+
+    if (checker == 0 ) //&&  flag0 == TRUE)
+        return 4;
+
+
+    return 1;
 
     /*
     // flag location
@@ -664,6 +703,7 @@ int gameStat()
 
 
     if (teamWins() == 2)
+
 
         return 4; // Team 2 wins
 
@@ -835,7 +875,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
             {
                 tempPlayer->PlayerPos.x = JailList0[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
-                JailList0[p].occupied = 1;
+                JailList0[p].occupied = team;
                 tempPlayer->State = 1;
                 return 1;
             }
@@ -851,7 +891,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
                 tempPlayer->PlayerPos.x = JailList1[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
-                tempPlayer->State = 1;
+                tempPlayer->State = team;
                 return 1;
             }
         }
