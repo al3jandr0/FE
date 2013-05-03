@@ -108,56 +108,7 @@ proto_client_event_null_handler(Proto_Session *s)
 
     return 1;
 }
-/*
-static int
-proto_client_event_update_handler(Proto_Session *s)
-{
-    Proto_Msg_Hdr h;
 
-    if (proto_debug())
-        fprintf(stderr,
-                "proto_client_event_update_handler: invoked for session:\n");
-
-    bzero(&h, sizeof(h));
-    proto_session_hdr_unmarshall(s, &h);
-
-    // h.sver.raw  (ulong long ) version number 
-    // h.gstate.v0, v1, v2 (int) game state
-
-    if (proto_debug())
-        fprintf(stderr, "serverMapVersion = %llu\n", h.sver.raw);
-    pthread_mutex_lock(&gameMap_clientVersion_mutex);
-    if (h.sver.raw > gameMap_clientVersion.raw)
-    {
-        if (proto_debug())
-            fprintf(stderr, " previous gameMap_clientVersion = %llu\n", gameMap_clientVersion.raw);
-        gameMap_clientVersion.raw++; // ++ or equals ?
-        if (proto_session_body_unmarshall_bytes(s, 0, sizeof(gameMap_clientCopy), &gameMap_clientCopy[0]) < 0)
-            fprintf(stderr,
-                    "proto_client_event_update_handler: proto_session_body_unmarshall_bytes failed\n");
-
-        gameMap_clientCopy[sizeof(gameMap_clientCopy) - 1] = 0;
-
-        //map(&gameMap_clientCopy[0]);
-    }
-    pthread_mutex_unlock(&gameMap_clientVersion_mutex);
-
-    //proto_session_dump(s);
-
-    return 1;
-}*/
-/*
-Broadcast Message Format Version 1
-
-header: game_ver, game_state, count_cellinfo, count_playerinfo, count_iteminfo, extra?
-        uint      long        short           short             short           int
-        4 + 8 + 2 + 2 + 1 = 22 bytes
-
-        4 + 5 bytes = 10 bytes
-items: type, x,    y
-       char  char  char
-       3 bytes
-*/
 static int
 proto_client_event_update_handler(Proto_Session *s)
 {
@@ -167,52 +118,48 @@ proto_client_event_update_handler(Proto_Session *s)
     if (proto_debug())
         fprintf(stderr,
                 "proto_client_event_update_handler: invoked for session:\n");
-    // proto_session_dump(s);
+        // proto_session_dump(s);
 
     bzero(&h, sizeof(h));
     proto_session_hdr_unmarshall(s, &h);
 
-    // pthread_mutex_lock(&gameMap_clientVersion_mutex);
     if (proto_debug())
         fprintf(stderr, "server game_version = %llu\n, local game_version = %llu\n,"
                 "server game_state = %d\n", h.sver.raw, gamedata.game_version, h.gstate.v0.raw);
 
-    // check that client recieved rpc join reply
-    while (1)
+    while(1)
     {
-        pthread_mutex_lock(&client_data_mutex);
-        if ( gamedata.game_version != -1 )
-        {
-           // TODO: implement correct game update (Sol 1) 
-           if (proto_client_event_msg_unmarshall_v1(s, h.blen, h.sver.raw) < 0)
-              fprintf(stderr, "proto_client_event_update_handler: ERROR "
+       pthread_mutex_lock(&client_data_mutex);
+       if (proto_client_event_msg_unmarshall_v1(s, h.blen, h.sver.raw) < 0)
+          fprintf(stderr, "proto_client_event_update_handler: ERROR "
                               "proto_client_event_msg_unmarshall_v1 failed\n"); 
-          // if ( h.sver.raw > gamedata.game_version )
-          // {
-              gamedata.game_version = h.sver.raw;
-              // update all the maze
-              proto_client_event_msg_unmarshall_v1( s, h.blen, h.sver.raw, 0 );
-          // }
-	  /* else if (h.sver.raw < gamedata.game_version) 
-           {
-              // update the older maze cells 
-              proto_client_event_msg_unmarshall_v1( s, h.blen, h.sver.raw, 1 );
-           }
-           else
-           {
-              fprintf(stderr, "proto_client_event_update_handler: "
-                              "ERROR local game version = server game verison");
-           }*/
-           if (proto_debug())
-              fprintf(stderr, "new client (local) game_version = %llu\n", 
-                                                   gamedata.game_version);
-
-           if ( h.gstate.v0.raw != gamedata.game_state )
-              gamedata.game_state = h.gstate.v0.raw; 
-           pthread_mutex_unlock(&client_data_mutex);
-           break;
-        }
-        pthread_mutex_unlock(&client_data_mutex);
+       // check that client recieved rpc join reply
+       if (gamedata.game_version == -1)
+       {
+          // game data not initialized yet. wait
+          pthread_mutex_unlock(&client_data_mutex);
+          continue;
+       }
+       else if ( h.sver.raw > gamedata.game_version )
+       {
+          gamedata.game_version++; // = h.sver.raw; is it better to assing the incoming version number?
+          // update all the maze
+          proto_client_event_msg_unmarshall_v1( s, h.blen, h.sver.raw, 0 );
+          // update the game state
+          gamedata.game_state = h.gstate.v0.raw; 
+       }
+       else 
+       {
+          // update the outdated cells only 
+          proto_client_event_msg_unmarshall_v1( s, h.blen, h.sver.raw, 1 );
+          // update the game state
+          gamedata.game_state = h.gstate.v0.raw; 
+       }
+       if (proto_debug())
+          fprintf(stderr, "new client (local) game_version = %llu\n", 
+                                               gamedata.game_version);
+       pthread_mutex_unlock(&client_data_mutex);
+       break;
     }
     return 1;
 }
@@ -357,7 +304,7 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     if (proto_debug())
         fprintf(stderr, "do_join_game_rpc started.\n");
 
-    // prepare msessage
+    // prepare header msessage
     s = &(c->rpc_session);
     bzero(&h, sizeof(h));
     h.type = mt;
@@ -365,14 +312,17 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
     if (proto_debug())
         fprintf(stderr, "do_move_rpc:\n   pId: %d\n", playerdata.id);
-
+  
+    // prepare body
     if (proto_session_body_marshall_int(s, playerdata.id) < 0)
         fprintf(stderr, "do_join_game_rpc: proto_session_body_marshall_int failed. "
                 "Not enough available sbufer space\n");
+
     // sned message
     rc = proto_session_rpc(s);
+    fprintf(stderr, "hello\n");
     
-    // process reply: pID, xdim, ydim, maze
+    // process reply: playerID, xdim, ydim, maze
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
@@ -390,27 +340,36 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
         if (proto_session_body_unmarshall_int(s, 2*sizeof(int), &Y) < 0)
             fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_int failed\n");
 
-        // initialize game version and state
-        pthread_mutex_lock(&client_data_mutex);
         playerdata.id = rc;
         gamedata.game_state = h.gstate.v0.raw;
         gamedata.game_version = h.sver.raw;
-
         themaze.rows = Y;
         themaze.columns = X;
         size = X*Y;
-        themaze.maze = (char*) malloc( size*sizeof(char) + 1 );
-        themaze.cell_version = (unsigned long long*) malloc(size*sizeof(unsigned long long));
 
-        if (proto_session_body_unmarshall_bytes(s, 3*sizeof(int), size, themaze.maze) < 0)
-            fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_bytes failed\n");
-        for (ii = 0; ii < size; ii++)
-            themaze.cell_version[ii] = h.sver.raw;
-        themaze.maze[X*Y] = 0;
-        if (proto_debug())
-            fprintf(stderr, "do_join_game_rpc: unmarshalled response\n" 
+        pthread_mutex_lock(&client_data_mutex);
+        // if game not initialized. 
+        if (gamedata.game_version == -1)
+        {
+           // initialize game data
+           themaze.maze = (char*) malloc( size*sizeof(char) + 1 );
+           themaze.cell_version = (unsigned long long*) malloc(size*sizeof(unsigned long long));
+
+           if (proto_session_body_unmarshall_bytes(s, 3*sizeof(int), size, themaze.maze) < 0)
+              fprintf(stderr, "do_join_game_rpc: proto_session_body_unmarshall_bytes failed\n");
+
+           for (ii = 0; ii < size; ii++)
+              themaze.cell_version[ii] = h.sver.raw;
+           themaze.maze[X*Y] = 0;
+
+           if (proto_debug())
+              fprintf(stderr, "do_join_game_rpc: unmarshalled response\n" 
                     "   game version = %llu\n game state = %d\n  player id = %d\n   dimx = %d\n"
                     "   dimy = %d\n", h.sver.raw, h.gstate.v0.raw, rc, X, Y);
+        }
+        else
+           fprintf(stderr, "do_join_game_rpc: WARNING: the game had been initialized before\n"); 
+              
         pthread_mutex_unlock(&client_data_mutex);
     }
     else
@@ -424,7 +383,8 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 static int
 do_move_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char data)
 {
-    int rc, temp_version;
+    int rc;
+    unsigned long long temp_version;
     Proto_Session *s;
     Proto_Client *c = ch;
     Proto_Msg_Hdr h;

@@ -7,7 +7,14 @@
 typedef struct {
    int state;
    unsigned long long version;
+   unsigned long long trs; // transaction number
 } Server_GameData;
+
+// Server_GameData
+//   state 
+//      -1 nothing
+//       0 player have joined. game has not started
+//       1 game started
 
 extern Server_GameData server_gameData;
 
