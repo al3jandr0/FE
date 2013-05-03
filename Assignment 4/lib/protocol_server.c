@@ -120,6 +120,7 @@ proto_server_record_event_subscriber(int fd, int *num)
 {
     int rc = -1;
 
+    fprintf(stderr, "hello says proto server record event subscriber\n");
     pthread_mutex_lock(&Proto_Server.EventSubscribersLock);
 
     if (Proto_Server.EventLastSubscriber < PROTO_SERVER_MAX_EVENT_SUBSCRIBERS
@@ -158,7 +159,8 @@ proto_server_event_listen(void *arg)
 {
     int fd = Proto_Server.EventListenFD;
     int connfd;
-
+    
+    fprintf(stderr, "hello says the event listener\n");
     if (net_listen(fd) < 0)
     {
         exit(-1);
