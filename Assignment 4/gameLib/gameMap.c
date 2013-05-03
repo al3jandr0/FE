@@ -403,21 +403,29 @@ Cell cellInfo(int column, int row)
 int start()
 {
 
-    if (playerCount > 2 && gamePlayingFlag == FALSE)
+    if (playerCount > -1 && gamePlayingFlag == FALSE)
     {
-        loadMap();
+        printf("Starting the Game\n");
+
         //PlayerList = malloc(MAX * sizeof(Player));
         HomeList0 = malloc(MAX * sizeof(Cell));
         HomeList1 = malloc(MAX * sizeof(Cell));
         JailList0 = malloc(MAX * sizeof(Cell));
         JailList1 = malloc(MAX * sizeof(Cell));
+
+        printf("Loading the Map\n");
+
+        loadMap();
+
         gamePlayingFlag = TRUE;
         return 1;
 
     }
 
     else
-        return -1;
+        printf("Cannot start the Game yet.\n");
+
+    return -1;
 }
 
 int stop()
@@ -461,9 +469,8 @@ int stop()
 
         struct player *ptr = NULL;
 
-        for (i = 0; i < MAX; i++)
+        for (i = 0; i < playerCount; i++)
         {
-
             ret = delete_from_list(i);
 
             if (ret != 0)
@@ -585,8 +592,6 @@ int loadMap()
 
                 JailList0[maze.numOfJails[0]] = newCell;
                 maze.numOfJails[0]++;
-
-
             }
             else if (c == 'J')
             {
@@ -596,12 +601,11 @@ int loadMap()
             else if (c == 'h')
             {
                 HomeList0[maze.numOfHomes[0]] = newCell;
-
                 maze.numOfHomes[0]++;
             }
             else if (c == 'H')
             {
-                HomeList0[maze.numOfHomes[1]] = newCell;
+                HomeList1[maze.numOfHomes[1]] = newCell;
 
                 maze.numOfHomes[1]++;
             }
@@ -736,7 +740,7 @@ int addPlayer() //(Deltas *d)
     struct player *newPlayer = NULL;
 
     int i;
-    
+
     int temp = 0;
 
     struct player *ptr = NULL;
@@ -747,7 +751,7 @@ int addPlayer() //(Deltas *d)
     }
     else
     {
-        for (i = 1; i < playerCount; i++)
+        for (i = 0; i < playerCount; i++)
         {
             ptr = search_in_list(i, NULL);
 
@@ -1020,19 +1024,13 @@ addToMap()
     // maze[item.x][item.y] = 'item.type'
 }
 
-int main(int argc, char const *argv[])
+void addPlayerTest(int num)
 {
-
     int i;
 
-    for ( i = 0; i < 300; ++i)
+    for ( i = 0; i < num; i++)
     {
-        if (i < 200)
-        {
-            addPlayer();
-        }
-        else
-            removePlayer(i - 100);
+        addPlayer();
     }
 
 
@@ -1057,10 +1055,9 @@ int main(int argc, char const *argv[])
 
     printf("\nTotal player count is - %d\n", temp);
 
-    for ( i = 0; i < 500; ++i)
+    for ( i = 0; i <= num; i++)
     {
-
-        addPlayer();
+        removePlayer(i);
     }
 
 
@@ -1084,6 +1081,42 @@ int main(int argc, char const *argv[])
     }
 
     printf("\nTotal player count is - %d\n", temp);
+}
+
+void homeAndJailTest()
+{
+    int x = 0;
+
+    for (x = 0; x < maze.numOfHomes[0]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)HomeList0[x].C_Type, HomeList0[x].Cell_Team , HomeList0[x].Cell_Pos.x, HomeList0[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfHomes[1]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)HomeList1[x].C_Type, HomeList1[x].Cell_Team , HomeList1[x].Cell_Pos.x, HomeList1[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfJails[0]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)JailList0[x].C_Type, JailList0[x].Cell_Team , JailList0[x].Cell_Pos.x, JailList0[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfJails[1]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)JailList1[x].C_Type, JailList1[x].Cell_Team , JailList1[x].Cell_Pos.x, JailList1[x].Cell_Pos.y);
+    }
+}
+
+int main(int argc, char const *argv[])
+{
+
+    //    addPlayerTest(200);
+    //    homeAndJailTest();
+
+    start();
+
+    addPlayer();
+    addPlayer();
+
+    //dumpMap();
 
     return 0;
 }
