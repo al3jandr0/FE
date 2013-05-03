@@ -402,7 +402,6 @@ Cell cellInfo(int column, int row)
 
 int startGame()
 {
-
     if (playerCount > -1 && gamePlayingFlag == FALSE)
     {
         printf("Starting the Game\n");
@@ -515,6 +514,61 @@ int stopGame()
     }
     else
         return -1;
+
+}
+
+
+
+int resetGame()
+{
+    if (playerCount > -1)
+    {
+        printf("Starting the Game\n");
+
+        //PlayerList = malloc(MAX * sizeof(Player));
+        HomeList0 = malloc(MAX * sizeof(Cell));
+        HomeList1 = malloc(MAX * sizeof(Cell));
+        JailList0 = malloc(MAX * sizeof(Cell));
+        JailList1 = malloc(MAX * sizeof(Cell));
+
+        printf("Loading the Map\n");
+
+        loadMap();
+
+
+        gamePlayingFlag = TRUE;
+        int i;
+        struct player *ptr = NULL;
+        Position *newPlayerPos = NULL;
+
+
+        for ( i = 0; i < playerCount; ++i)
+        {
+
+            ptr = search_in_list(i, NULL);
+
+            if (NULL == ptr)
+            {
+            }
+            else
+            {
+                newPlayerPos = findFreeHome(ptr->team);
+
+                if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+                {
+                    newPlayer->PlayerPos = *newPlayerPos;
+                }
+            }
+        }
+
+        return 1;
+
+    }
+
+    else
+        printf("Error: Cannot restart the Game!\n");
+
+    return -1;
 
 }
 
