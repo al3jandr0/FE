@@ -134,8 +134,9 @@ proto_client_event_update_handler(Proto_Session *s)
     proto_session_hdr_unmarshall(s, &h);
 
     if (proto_debug())
-        fprintf(stderr, "server game_version = %llu\n, local game_version = %llu\n,"
-                "server game_state = %d\n", h.sver.raw, gamedata.game_version, h.gstate.v0.raw);
+        fprintf(stderr, "@proto_client_event_update_handler: server game_version = %llu\n, " 
+                        "local game_version = %llu\n, trs=%llu, server game_state = %d\n",
+                        h.sver.raw, gamedata.game_version, h.gstate.v1.raw, h.gstate.v0.raw);
 
     for(;;) 
     {
@@ -165,10 +166,10 @@ proto_client_event_update_handler(Proto_Session *s)
            fprintf(stderr, "new client (local) game_version = %llu\n", 
                                                gamedata.game_version);
 
-        break;
         // TODO: possible recieve an out of order end game. think of how to deal with that
         gamedata.game_state = h.gstate.v0.raw; 
         pthread_mutex_unlock(&client_data_mutex);
+        break;
     }
     return 1;
 }
@@ -302,6 +303,22 @@ do_generic_dummy_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     return rc;
 }
 
+void wait_for_event( unsigned long long cv)
+{
+   // wait until we have recieved the envent update 
+   for(;;)
+   {
+      pthread_mutex_lock(&client_data_mutex);
+      if ( cv > gamedata.game_version  )
+      {
+         pthread_mutex_unlock(&client_data_mutex);
+         continue;
+      }
+      pthread_mutex_unlock(&client_data_mutex);
+      break;
+   }
+}
+
 static int
 do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 {
@@ -370,8 +387,8 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
 
           if (proto_debug())
              fprintf(stderr, "do_join_game_rpc: unmarshalled response\n" 
-                   "   game version = %llu\n game state = %d\n  player id = %d\n   dimx = %d\n"
-                   "   dimy = %d\n", h.sver.raw, h.gstate.v0.raw, rc, X, Y);
+                   "   game version = %llu\n   trs=%llu\n   game state = %d\n  player id = %d\n"
+                   "    dimx = %d\n   dimy = %d\n", h.sver.raw, h.gstate.v1.raw, h.gstate.v0.raw, rc, X, Y);
        }
        else
           fprintf(stderr, "do_join_game_rpc: WARNING: gamedata had been initialized before\n"); 
@@ -415,15 +432,8 @@ do_move_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char data)
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
-        // keep client synchronized
-        /*while (1)
-        {
-            pthread_mutex_lock(&client_data_mutex);
-            temp_version = gamedata.game_version
-            pthread_mutex_unlock(&client_data_mutex);
-            if ( h.sver.raw <= gamedata.game_version )
-               break;
-        }*/
+        // wait until we have recieved the envent update
+        wait_for_event(h.sver.raw);
 
         if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
             fprintf(stderr, "do_move_rpc: proto_session_body_unmarshall_int failed\n");
@@ -471,15 +481,7 @@ do_item_action_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char item, char a
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
-        // keep client synchronized
-        /*while (1)
-        {
-            pthread_mutex_lock(&client_data_mutex);
-            temp_version = gamedata.game_version
-            pthread_mutex_unlock(&client_data_mutex);
-            if ( h.sver.raw <= gamedata.game_version )
-               break;
-        }*/
+        wait_for_event(h.sver.raw);
         if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
             fprintf(stderr, "do_item_action: proto_session_body_unmarshall_int failed\n");
         if (proto_debug())
@@ -514,15 +516,7 @@ do_leave_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
-        // keep client synchronized
-        /*while (1)
-        {
-            pthread_mutex_lock(&client_data_mutex);
-            temp_version = gamedata.game_version
-            pthread_mutex_unlock(&client_data_mutex);
-            if ( h.sver.raw <= gamedata.game_version )
-               break;
-        }*/
+        wait_for_event(h.sver.raw); // i dont think I need it here
 
         if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
             fprintf(stderr, "do_leave_game: proto_session_body_unmarshall_int failed\n");

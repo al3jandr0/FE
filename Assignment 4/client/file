@@ -1,0 +1,14 @@
+
+daGame> 
+daGame> Session lost...:
+Session s=0xb75f4008:
+ fd=0, extra=(nil) slen=4, rlen=0
+ shdr:
+  ver=0 type=PROTO_MT_REQ_BASE_HELLO sver=0 pstate:v0=x00 v1=0x0 v2=0x0 v3=0x0
+ gstate:v0=0x0 v1=0x0 v2=0x0
+ blen=4
+ rhdr:
+  ver=0 type=PROTO_MT_REQ_BASE_RESERVED_FIRST sver=0 pstate:v0=x00 v1=0x0 v2=0x0 v3=0x0
+ gstate:v0=0x0 v1=0x0 v2=0x0
+ blen=0
+terminating

@@ -49,7 +49,8 @@ char MenuString[] =
 int printServerData()
 {
     pthread_mutex_lock(&server_data_mutex);
-    fprintf(stderr, "Game Version: %llu\n   Game State %d\n");
+    fprintf(stdout, "Server Data:\n   Game Version: %llu\n   Game State %d\n   trs=%llu\n",
+            server_gameData.version, server_gameData.stae, server_gameData.trs);
     pthread_mutex_unlock(&server_data_mutex);
 }
 int
@@ -123,7 +124,7 @@ main(int argc, char **argv)
         exit(-1);
     }
 
-    fprintf(stderr, "RPC Port: %d, Event Port: %d\n", proto_server_rpcport(),
+    fprintf(stdout, "RPC Port: %d, Event Port: %d\n", proto_server_rpcport(),
             proto_server_eventport());
 
     if (proto_server_start_rpc_loop() < 0)

@@ -57,7 +57,7 @@ int print_client_data()
 {
    pthread_mutex_lock(&client_data_mutex);
 
-   fprintf(stderr, "Game:\n   version: %llu\n   state: %d\n"
+   fprintf(stdout, "Game:\n   version: %llu\n   state: %d\n"
                    "Player:\n   id: %d\n   team: %d\n   x: %d\n   y: %d\n   flag: %c\n   shovel: %c\n",
                    gamedata.game_version, gamedata.game_state, playerdata.id, playerdata.team, 
                    playerdata.x, playerdata.y, playerdata.state, playerdata.flag, playerdata.shovel);
@@ -207,7 +207,7 @@ char *specialPrompt(int menu)
     if (cmdInputs == 0) quit();
 
     if (menu)
-        fprintf(stderr, "\ndaGame> ");
+        fprintf(stdout, "\ndaGame> ");
 
     fflush(stdout);
 
@@ -635,7 +635,7 @@ int doCMDS(Client *C, char *cmdInput)
 
         else
         {
-            fprintf(stderr, "Unkown Command\n");
+            fprintf(stdout, "Unkown Command\n");
         }
     }
 
@@ -768,7 +768,7 @@ shell(void *arg)
 void
 usage(char *pgm)
 {
-    fprintf(stderr, "USAGE: %s <port|<<host port> [shell] [gui]>>\n"
+    fprintf(stdout, "USAGE: %s <port|<<host port> [shell] [gui]>>\n"
             "  port     : rpc port of a game server if this is only argument\n"
             "             specified then host will default to localhost and\n"
             "             only the graphical user interface will be started\n"

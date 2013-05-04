@@ -98,13 +98,15 @@ proto_dump_pstate(Proto_Player_State *ps)
 extern void
 proto_dump_gstate(Proto_Game_State *gs)
 {
-    int v0, v1, v2;
+    //int v0, v1, v2;
+    int v0, v2;
+    unsigned long long v1;    
 
     v0 = ntohl(gs->v0.raw);
     v1 = ntohl(gs->v1.raw);
     v2 = ntohl(gs->v2.raw);
 
-    fprintf(stderr, "v0=0x%x v1=0x%x v2=0x%x\n",
+    fprintf(stderr, "v0=0x%x v1=0x%llx v2=0x%x\n",
             v0, v1, v2);
 }
 
