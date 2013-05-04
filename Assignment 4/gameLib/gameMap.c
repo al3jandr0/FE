@@ -519,7 +519,7 @@ int stopGame()
 
 
 
-int resetGame()
+int resetGame(Deltas *d)
 {
     if (playerCount > -1)
     {
@@ -558,6 +558,8 @@ int resetGame()
                 {
                     newPlayer->PlayerPos = *newPlayerPos;
                 }
+
+                add_delta_player(d, ptr, sizeof(struct player));
             }
         }
 
@@ -883,6 +885,8 @@ int addPlayer() //(Deltas *d)
 
             newPlayer->i = NULL;
 
+            add_delta_player(d, newPlayer, sizeof(struct player));
+
             return playerCount++;
         }
     }
@@ -1042,6 +1046,8 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
                 // tagging check
                 tagCheck(ptr);
 
+                add_delta_player(d, ptr, sizeof(struct player));
+
                 return 1; // move made
             }
 
@@ -1053,6 +1059,9 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 
                 // tagging check
                 tagCheck(ptr);
+
+                add_delta_player(d, ptr, sizeof(struct player));
+
 
                 return 1; // move made
             }
@@ -1066,6 +1075,8 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
                 // tagging check
                 tagCheck(ptr);
 
+                add_delta_player(d, ptr, sizeof(struct player));
+
                 return 1; // move made
             }
 
@@ -1077,6 +1088,8 @@ int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 
                 // tagging check
                 tagCheck(ptr);
+
+                add_delta_player(d, ptr, sizeof(struct player));
 
                 return 1; // move made
             }
@@ -1279,6 +1292,7 @@ void moveTest(int num)
         print_list();
     }
 }
+
 int main(int argc, char const *argv[])
 {
 
