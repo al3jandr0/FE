@@ -30,6 +30,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <pthread.h>
+//#include general_utils.c
 
 enum { FALSE, TRUE };
 
@@ -66,6 +67,7 @@ typedef enum
     Team2 = 2
 } Team;
 
+/*
 typedef struct
 {
     Team team;
@@ -74,6 +76,7 @@ typedef struct
     int State;
     Item *i;
 } Player;
+*/
 
 typedef struct
 {
@@ -81,11 +84,21 @@ typedef struct
 
 } Item;
 
+struct player
+{
+    int team;
+    Position PlayerPos;
+    int ID;
+    int State;
+    Item *i;
+    struct player *next;
+};
+
 typedef struct
 {
     Cell_Type C_Type;
     Position Cell_Pos;
-    Player *p;
+    struct player  *p;
     Team Cell_Team;
     Item *o;
     int occupied;
@@ -101,16 +114,6 @@ typedef struct
     int numOfHomes[2];
     Position dimensions;
 } Maze;
-
-struct player
-{
-    Team team;
-    Position PlayerPos;
-    int ID;
-    int State;
-    Item *i;
-    struct player *next;
-};
 
 struct player *head = NULL;
 struct player *curr = NULL;
@@ -239,7 +242,7 @@ void print_list(void)
     printf("\n -------Printing player list------- \n");
     while (ptr != NULL)
     {
-        printf("\n [%d] \n", ptr->ID);
+        printf("\n Player Id : [%d] \n Player Team : [%d]\n Player Position : [%d,%d]\n Player State : [%d]\n", ptr->ID, ptr->team, ptr->PlayerPos.x, ptr->PlayerPos.y, ptr->State);
         ptr = ptr->next;
     }
     return;
@@ -247,7 +250,7 @@ void print_list(void)
 
 Maze maze;
 
-Player *PlayerList;
+//Player *PlayerList;
 //Player* PlayerList = malloc(MAX * sizeof(Player));
 
 //int homeCount0 = 0;
@@ -397,27 +400,35 @@ Cell cellInfo(int column, int row)
     */
 }
 
-int start()
+int startGame()
 {
 
-    if (playerCount > 2 && gamePlayingFlag == FALSE)
+    if (playerCount > -1 && gamePlayingFlag == FALSE)
     {
-        loadMap();
-        PlayerList = malloc(MAX * sizeof(Player));
+        printf("Starting the Game\n");
+
+        //PlayerList = malloc(MAX * sizeof(Player));
         HomeList0 = malloc(MAX * sizeof(Cell));
         HomeList1 = malloc(MAX * sizeof(Cell));
         JailList0 = malloc(MAX * sizeof(Cell));
         JailList1 = malloc(MAX * sizeof(Cell));
+
+        printf("Loading the Map\n");
+
+        loadMap();
+
         gamePlayingFlag = TRUE;
         return 1;
 
     }
 
     else
-        return -1;
+        printf("Cannot start the Game yet.\n");
+
+    return -1;
 }
 
-int stop()
+int stopGame()
 {
     int x;
 
@@ -452,7 +463,26 @@ int stop()
 
     if (gamePlayingFlag == TRUE)
     {
-        free(PlayerList);
+        //free(PlayerList);
+
+        int i = 0, ret = 0;
+
+        struct player *ptr = NULL;
+
+        for (i = 0; i < playerCount; i++)
+        {
+            ret = delete_from_list(i);
+
+            if (ret != 0)
+            {
+                printf("\n delete [val = %d] failed, no such element found\n", i);
+            }
+            else
+            {
+                printf("\n delete [val = %d]  passed \n", i);
+            }
+        }
+
 
         free(HomeList0);
 
@@ -562,8 +592,6 @@ int loadMap()
 
                 JailList0[maze.numOfJails[0]] = newCell;
                 maze.numOfJails[0]++;
-
-
             }
             else if (c == 'J')
             {
@@ -573,12 +601,11 @@ int loadMap()
             else if (c == 'h')
             {
                 HomeList0[maze.numOfHomes[0]] = newCell;
-
                 maze.numOfHomes[0]++;
             }
             else if (c == 'H')
             {
-                HomeList0[maze.numOfHomes[1]] = newCell;
+                HomeList1[maze.numOfHomes[1]] = newCell;
 
                 maze.numOfHomes[1]++;
             }
@@ -648,97 +675,139 @@ int gameStat()
 
         return 1; // Game started
 
-        return 0; // Game not started
+        return -1; // Game not started
         */
 }
 
-int addPlayer (Deltas *d)
+
+Position *findFreeHome(int team)
 {
 
-    Player newPlayer;
-
-    newPlayer.team = playerCount % 2;
-
-    Position newPlayerPos = findFreeHome(playerCount % 2);
-
-    if (newPlayerPos.x != NULL && newPlayerPos.y != NULL)
-    {
-        newPlayer.PlayerPos = newPlayerPos;
-
-        newPlayer.ID = playerCount;
-
-        Item tempItem;
-
-        newPlayer.i = NULL;
-
-        struct player *ptr = NULL;
-
-        add_to_list(playerCount++, true);
-
-        return playerCount;
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-Position findFreeHome(int team)
-{
+    printf("Trying to find location for team %d\n", team);
 
     int p = 0;
 
-    Position newPos;
+    Position *newPos = NULL;
 
-    if (team = 0)
+    newPos = malloc(sizeof(Position));
+
+    if (team == 0)
     {
+        printf("%s\n", "Team 0");
+
         for (p = 0; p < maze.numOfHomes[0]; p++)
         {
             if (HomeList0[p].occupied != 1)
             {
-                newPos.x = HomeList0[p].Cell_Pos.x;
-                newPos.y = HomeList0[p].Cell_Pos.y;
+                newPos->x = HomeList0[p].Cell_Pos.x;
+                newPos->y = HomeList0[p].Cell_Pos.y;
                 HomeList0[p].occupied = 1;
+                printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
             }
         }
     }
 
-    if (team = 1)
+    if (team == 1)
     {
+        printf("%s\n", "Team 1");
         for (p = 0; p < maze.numOfHomes[1]; p++)
         {
             if (HomeList1[p].occupied != 1)
             {
-                newPos.x = HomeList1[p].Cell_Pos.x;
-                newPos.y = HomeList1[p].Cell_Pos.y;
+                newPos->x = HomeList1[p].Cell_Pos.x;
+                newPos->y = HomeList1[p].Cell_Pos.y;
                 HomeList1[p].occupied = 1;
+                printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
                 return newPos;
                 //break;
             }
         }
     }
 
-    newPos.x = NULL;
-    newPos.y = NULL;
+    newPos->x = 1;
+    newPos->y = 1;
+
+    printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
+
 
     return newPos;
 }
 
+int addPlayer() //(Deltas *d)
+{
+    struct player *newPlayer = NULL;
+
+    int i;
+
+    int temp = 0;
+
+    struct player *ptr = NULL;
+
+    if (playerCount < MAX)
+    {
+
+    }
+    else
+    {
+        for (i = 0; i < playerCount; i++)
+        {
+            ptr = search_in_list(i, NULL);
+
+            if (NULL == ptr)
+            {
+            }
+            else
+            {
+                temp++;
+            }
+        }
+    }
+
+    if (temp < MAX)
+    {
+        printf("%s\n", "\nAdding Player!");
+
+        add_to_list(playerCount, true);
+
+        newPlayer = search_in_list(playerCount, NULL);
+
+        newPlayer->team = playerCount % 2;
+
+        Position *newPlayerPos = NULL;
+
+        newPlayerPos = findFreeHome(playerCount % 2);
+
+        if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+        {
+            newPlayer->PlayerPos = *newPlayerPos;
+
+            newPlayer->ID = playerCount;
+
+            Item tempItem;
+
+            newPlayer->i = NULL;
+
+            return playerCount++;
+        }
+    }
+    return -1;
+
+}
+
 int removePlayer (int playerID)//, Deltas *d)
 {
-
     int ret = delete_from_list(playerID);
 
     if (ret != 0)
     {
-        printf("\n Delete [player id = %d] failed, no such element found\n", i);
+        printf("\n Delete [player id = %d] failed, no such element found\n", playerID);
         return -1;
     }
     else
     {
-        printf("\n Delete [player id = %d] - Done. \n", i);
+        printf("\n Delete [player id = %d] - Done. \n", playerID);
         return 1;
     }
 
@@ -756,34 +825,33 @@ int removePlayer (int playerID)//, Deltas *d)
 
 void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 {
-
     int p = 0;
 
-    if (tempPlayer.team == Team1)
+    if (tempPlayer->team == Team1)
     {
         for (p = 0; p < maze.numOfJails[0]; p++)
         {
             if (JailList0[p].occupied != 1)
             {
-                tempPlayer.PlayerPos.x = JailList0[p].Cell_Pos.x;
-                tempPlayer.PlayerPos.y = JailList0[p].Cell_Pos.y;
+                tempPlayer->PlayerPos.x = JailList0[p].Cell_Pos.x;
+                tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
                 JailList0[p].occupied = 1;
-                tempPlayer.State = 1;
+                tempPlayer->State = 1;
                 break;
             }
         }
     }
 
-    if (tempPlayer.team == Team2)
+    if (tempPlayer->team == Team2)
     {
         for (p = 0; p < maze.numOfJails[1]; p++)
         {
             if (JailList1[p].occupied != 1)
             {
-                tempPlayer.PlayerPos.x = JailList1[p].Cell_Pos.x;
-                tempPlayer.PlayerPos.y = JailList1[p].Cell_Pos.y;
+                tempPlayer->PlayerPos.x = JailList1[p].Cell_Pos.x;
+                tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
-                tempPlayer.State = 1;
+                tempPlayer->State = 1;
                 break;
             }
         }
@@ -791,16 +859,13 @@ void jailPlayer(struct player *tempPlayer)// Player tempPlayer)
 
 }
 
-void tagCheck(Player tempPlayer)
+void tagCheck(struct player *tempPlayer)
 {
-    Team tagger = tempPlayer.team;
-
+    Team tagger = tempPlayer->team;
 
     int k;
 
     struct player *ptr = NULL;
-
-    ptr = search_in_list(i, NULL);
 
     for (k = 0; k < MAX; k++)
     {
@@ -814,11 +879,11 @@ void tagCheck(Player tempPlayer)
         {
             debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
 
-            if (ptr.team != tagger)
+            if (ptr->team != tagger)
             {
-                if ((ptr.PlayerPos.x ==  tempPlayer.PlayerPos.x) && (ptr.PlayerPos.y ==  tempPlayer.PlayerPos.y))
+                if ((ptr->PlayerPos.x ==  tempPlayer->PlayerPos.x) && (ptr->PlayerPos.y ==  tempPlayer->PlayerPos.y))
                 {
-                    if (ptr.PlayerPos.x > MAX / 2 && tagger == Team1)
+                    if (ptr->PlayerPos.x > MAX / 2 && tagger == Team1)
                         jailPlayer(tempPlayer);
                     else
                         jailPlayer(ptr);
@@ -834,74 +899,82 @@ void tagCheck(Player tempPlayer)
 int movePlayer (int playerID/*, Deltas *d*/, char c)  //['U', 'D', 'L', 'R']
 {
 
-    struct player *ptr = NULL;
+printf("\ngamePlayingFlag - %d\n", gamePlayingFlag);
 
-    ptr = search_in_list(playerID, NULL);
-
-    if (NULL == ptr)
+    if (gamePlayingFlag == TRUE)
     {
-        debugPrint("\n Search [playerID = %d] failed, no such element found\n", k);
+        struct player *ptr = NULL;
+
+        printf("Looking for player - %d \n", playerID);
+        ptr = search_in_list(playerID, NULL);
+
+        if (NULL == ptr)
+        {
+            debugPrint("\n Search [playerID = %d] failed, no such element found\n", playerID);
+            return -1;
+        }
+        else
+        {
+            debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
+        }
+
+        // jail check
+        if (ptr->State == 0)
+        {
+
+            Cell tempCell = cellInfo(ptr->PlayerPos.y, ptr->PlayerPos.x);
+
+            printf("tempCell type - %c\ntempCell location - %d, %d\n", tempCell.C_Type, tempCell.Cell_Pos.x, tempCell.Cell_Pos.y);
+
+            // IDid move check
+            if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall && tempCell.C_Type != CT_Jailj && tempCell.C_Type != CT_JailJ))
+            {
+                ptr->PlayerPos.y--;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+
+            }
+
+            // IDid move check
+            if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr->PlayerPos.y++;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            // IDid move check
+            if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr->PlayerPos.x--;
+
+                // tagging check
+                tagCheck(ptr);
+
+                return 1; // move made
+            }
+
+            // IDid move check
+            if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
+            {
+                ptr->PlayerPos.x++;
+
+                // tagging check
+                tagCheck(ptr);
+                return 1; // move made
+            }
+        }
+        else
+            return -1; // In jail
     }
-    else
-    {
-        debugPrint("\n Search passed [playerID = %d]\n", ptr->ID);
-
-    }
-
-    // jail check
-    if (ptr.State == 0)
-    {
-
-        Cell tempCell = cellInfo(ptr.PlayerPos.x, ptr.PlayerPos.y);
-
-        // IDid move check
-        if ((c == 'U' || c == 'u' || c == '1') && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-
-        {
-            ptr.PlayerPos.y--;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-
-        }
-
-        // IDid move check
-        if ((c == 'D' || c == 'd' || c == '2')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.y++;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-        }
-
-        // IDid move check
-        if ((c == 'L' || c == 'l' || c == '3')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.x--;
-
-            // tagging check
-            tagCheck(ptr);
-
-            return 1; // move made
-        }
-
-        // IDid move check
-        if ((c == 'R' || c == 'r' || c == '4')  && tempCell.p == NULL && (tempCell.C_Type != CT_Wall))
-        {
-            ptr.PlayerPos.x++;
-
-            // tagging check
-            tagCheck(ptr);
-            return 1; // move made
-        }
-    }
-    else
-        return -1; // In jail
-
+    //else
+    return -1;
 }
 
 char *formatMaze()
@@ -947,12 +1020,122 @@ int dimY()
 
 addToMap()
 {
-    // Player Array 
+    // Player Array
     // Items Array
-    // to maze 
+    // to maze
     // maze[player.x][player.y] = 'p'
     // maze[item.x][item.y] = 'item.type'
 }
+
+void addPlayerTest(int num)
+{
+    int i;
+
+    for ( i = 0; i < num; i++)
+    {
+        addPlayer();
+    }
+
+
+    print_list();
+
+    int temp = 0;
+
+    struct player *ptr = NULL;
+
+    for (i = 0; i < playerCount; i++)
+    {
+        ptr = search_in_list(i, NULL);
+
+        if (NULL == ptr)
+        {
+        }
+        else
+        {
+            temp++;
+        }
+    }
+
+    printf("\nTotal player count is - %d\n", temp);
+
+    for ( i = 0; i <= num; i++)
+    {
+        removePlayer(i);
+    }
+
+
+    print_list();
+
+    temp = 0;
+
+    ptr = NULL;
+
+    for (i = 0; i < playerCount; i++)
+    {
+        ptr = search_in_list(i, NULL);
+
+        if (NULL == ptr)
+        {
+        }
+        else
+        {
+            temp++;
+        }
+    }
+
+    printf("\nTotal player count is - %d\n", temp);
+}
+
+void homeAndJailTest()
+{
+    int x = 0;
+
+    for (x = 0; x < maze.numOfHomes[0]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)HomeList0[x].C_Type, HomeList0[x].Cell_Team , HomeList0[x].Cell_Pos.x, HomeList0[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfHomes[1]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)HomeList1[x].C_Type, HomeList1[x].Cell_Team , HomeList1[x].Cell_Pos.x, HomeList1[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfJails[0]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)JailList0[x].C_Type, JailList0[x].Cell_Team , JailList0[x].Cell_Pos.x, JailList0[x].Cell_Pos.y);
+    }
+    for (x = 0; x < maze.numOfJails[1]; x++)
+    {
+        printf("\nType - %c \nTeam - %d \n[%d, %d]\n", (char)JailList1[x].C_Type, JailList1[x].Cell_Team , JailList1[x].Cell_Pos.x, JailList1[x].Cell_Pos.y);
+    }
+}
+
+int main(int argc, char const *argv[])
+{
+
+    //    addPlayerTest(200);
+    //    homeAndJailTest();
+
+    startGame();
+/*
+    int temp = addPlayer();
+    printf("Player id returned : %d\n", temp);
+    print_list();
+
+
+    movePlayer (temp, 'U');
+    print_list();
+    movePlayer (temp, 'D');
+    print_list();
+    movePlayer (temp, 'L');
+    print_list();
+    movePlayer (temp, 'R');
+    print_list();
+
+*/
+    dumpMap();
+
+    return 0;
+}
+
 
 /*
 //extern int
