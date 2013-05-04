@@ -223,9 +223,9 @@ proto_server_post_event(void)
     pthread_mutex_unlock(&Proto_Server.EventSubscribersLock);
 }
 
-// Broadcasts changes in the game to Subscribers
+// Broadcasts changes in the game to all the Subscribers
 int
-doUpdateClientsGame(int updateMapVersion, Deltas *d)
+doUpdateClientsGame(Deltas *d, Server_GameData* gameinfo)
 {
     Proto_Session *s;
     Proto_Msg_Hdr hdr;
@@ -234,23 +234,18 @@ doUpdateClientsGame(int updateMapVersion, Deltas *d)
         fprintf(stderr, "doUpdateClientsGame called\n"); 
 
     bzero(&hdr, sizeof(hdr));
-
     s = proto_server_event_session();
-    // set sver if nescesary
+    // prepare header
     hdr.type = PROTO_MT_EVENT_BASE_UPDATE;
-    // pthread_spin_lock(&server_data_spinlock);
-    hdr.sver.raw = server_gameData.version;
-    hdr.gstate.v0.raw = server_gameData.state;
-    // pthread_spin_unlock(&server_data_spinlock);
+    hdr.sver.raw = gameinfo->version;
+    hdr.gstate.v0.raw = gameinfo->state;
+    hdr.gstate.v1.raw = gameinfo->trs;
     proto_session_hdr_marshall(s, &hdr);
 
-    // test
-    proto_server_marshall_deltas(s, d);
-    // proto_server_test_msg(s);
-    proto_server_post_event();
+    // prepare body. TEST
+    proto_server_marshall_deltas(s, d); // proto_server_test_msg(s);
 
-    clean_deltas(d);
-    free(d);
+    proto_server_post_event();
     return 1;
 }
 
@@ -377,13 +372,13 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     int rc, player, dimy, dimx, msg_playerId; 
     Proto_Msg_Hdr h;
     Deltas *d;
+    Server_GameData gameinfo;
 
     player = 1;
     char dummy_maze[] = {'1','2','3','4','5','6','7','8','9'};
 
     if (proto_debug())
        fprintf(stderr, "proto_server_mt_join_game_handler: invoked for session:\n");
-    //proto_session_dump(s);
 
     // read incoming message
     proto_session_body_unmarshall_int(s, 0, &msg_playerId);
@@ -391,31 +386,32 @@ proto_server_mt_join_game_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_join_ganme_handler: Recieved:\n"
                         "    pId: %d\n", msg_playerId);
 
-   // TODO: return if player_id < 0
-
-    // prepare reply message
     bzero(&h, sizeof(s));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-    // send to client the current state and version
-    h.sver.raw = server_gameData.version; 
-    h.gstate.v0.raw = server_gameData.state; 
-    proto_session_hdr_marshall(s, &h);
 
-    // TODO: call game logic 
     d = (Deltas*) malloc( sizeof(Deltas) );
     init_deltas( d );
+
+    pthread_mutex_lock(&server_data_mutex);
+
     proto_server_test_deltas(d); // fills deltas with harcoded data for testing
-    //printlist_Player( d->player_l);
-    //printlist_Cell( d->cell_l);
-    dimx = 3;//dimx = get_maze_dimx();
-    dimy = 3;//dimy = get_maze_dimy();
+    dimx = 3; // dimx = get_maze_dimx();
+    dimy = 3; // dimy = get_maze_dimy();
+    // rc = add_player(d);
+    // if (rc > 0)
+    // {
+       server_gameData.version++;
+       h.gstate.v0.raw = gameinfo.state = server_gameData.state = 1; // temporary test value
+    //   h.gstate.v0.raw = gameinfo.state = server_gameData.state = gamestate();
+    // }
+    h.sver.raw = gameinfo.version = server_gameData.version;
+    h.gstate.v1.raw = gameinfo.trs = ++server_gameData.trs;
 
-    // TODO: update game version and state if necesary
-    // pthread_mutex_lock(&server_data_mutex);
-    // pthread_mutex_unlock(&server_data_mutex);
+    pthread_mutex_unlock(&server_data_mutex);
 
-    // relpy: pID, xdim, ydim, maze
+    proto_session_hdr_marshall(s, &h);
+    // prepare relpy: pID, xdim, ydim, maze
     if (proto_session_body_marshall_int(s, player) < 0)
         fprintf(stderr, "proto_server_mt_join_game_handler: "
                 "proto_session_body_marshall_int failed\n");
@@ -429,10 +425,12 @@ proto_server_mt_join_game_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_join_game_handler: "
                 "proto_session_body_marshall_bytes failed\n");
 
-    rc = proto_session_send_msg(s,1);
-    // TODO: update subscribers
-    doUpdateClientsGame(0, d);
-    return rc;
+    doUpdateClientsGame(d, &gameinfo);
+    clean_deltas(d);
+    free(d);
+
+    // if (rc > 0)
+    return proto_session_send_msg(s,1);
 }
 
 static int
@@ -831,9 +829,11 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_CELL_INFO, proto_server_mt_cinfo_handler    );
     proto_server_set_req_handler( PROTO_MT_REQ_MAP_DUMP , proto_server_mt_dump_handler     );
 
-    //pthread_mutex_lock(&gameMapVersion_mutex);
-    //gameMapVersion.raw = 0;
-    //pthread_mutex_unlock(&gameMapVersion_mutex);
+    pthread_mutex_lock(&server_data_mutex);
+    server_gameData.version = 0;
+    server_gameData.state = -2;
+    server_gameData.trs = 0;
+    pthread_mutex_unlock(&server_data_mutex);
 
     for (i = 0; i < PROTO_SERVER_MAX_EVENT_SUBSCRIBERS; i++)
     {

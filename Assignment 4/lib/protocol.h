@@ -106,7 +106,7 @@ typedef union
 
 typedef union
 {
-    int raw;
+    unsigned long long raw;
 } Proto_GV1;
 
 typedef union
@@ -116,10 +116,18 @@ typedef union
 
 typedef struct
 {
-    Proto_GV0       v0; // game state. 1 = game on hold, 2 = started, 3 = over
-    Proto_GV1       v1;  
+    Proto_GV0       v0; 
+    Proto_GV1       v1; // transaction number 
     Proto_GV2       v2; 
 } __attribute__((__packed__)) Proto_Game_State;
+
+// Proto_Game_State.v0
+//    4 -- team 2 wins
+//    3 -- tema 1 wins
+//    2 -- draw
+//    1 -- game started
+//   -1 -- game not started
+//   -2 -- init value. no players no subscribers
 
 typedef struct
 {

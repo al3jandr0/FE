@@ -7,6 +7,7 @@
 typedef struct {
    int state;
    unsigned long long version;
+   unsigned long long trs; // transaction number
 } Server_GameData;
 
 extern Server_GameData server_gameData;
