@@ -50,7 +50,7 @@ int printServerData()
 {
     pthread_mutex_lock(&server_data_mutex);
     fprintf(stdout, "Server Data:\n   Game Version: %llu\n   Game State %d\n   trs=%llu\n",
-            server_gameData.version, server_gameData.stae, server_gameData.trs);
+            server_gameData.version, server_gameData.state, server_gameData.trs);
     pthread_mutex_unlock(&server_data_mutex);
 }
 int

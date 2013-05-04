@@ -1,5 +1,6 @@
 #include "general_utils.h"
 #include <stdlib.h>
+#include "stdio.h"
 
 extern int add_delta_player(Deltas *d, void *p, int size)
 {
@@ -63,4 +64,25 @@ static void list_delete( LinkedList *il )
       free(tmp);
    }
 }
+
+extern int logMaze( char* fmaze, int maze_size, unsigned long long ver )
+{
+    char filename[30];
+    FILE *file;
+    int rc;
+
+    snprintf(&filename[0], sizeof(filename), "./Mazelog/VERSION%llu", ver );
+    file = fopen( &filename[0], "w" );
+    if (file == NULL)
+       fprintf(stderr, "@logMaze: ERROR fopen failed");
+    rc = fwrite( fmaze, sizeof(char), maze_size, file );
+    if (ferror(file))
+       perror("@logMaze: ERROR when wrtiting to file. "); 
+    rc = fclose(file);
+    if (rc != 0)
+       perror("@logMaze: ERROR when closign file file. "); 
+
+    return 1;
+}
+
 

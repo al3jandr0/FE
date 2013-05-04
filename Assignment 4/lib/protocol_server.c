@@ -229,6 +229,9 @@ doUpdateClientsGame(Deltas *d, Server_GameData* gameinfo)
 {
     Proto_Session *s;
     Proto_Msg_Hdr hdr;
+    int X, Y;
+    char* fmaze;
+    char test[6] = {'1','2','3','4','5','6'};
 
     if (proto_debug())
         fprintf(stderr, "doUpdateClientsGame called\n"); 
@@ -244,8 +247,15 @@ doUpdateClientsGame(Deltas *d, Server_GameData* gameinfo)
 
     // prepare body. TEST
     proto_server_marshall_deltas(s, d); // proto_server_test_msg(s);
-
+    // send update to all subscribers
     proto_server_post_event();
+
+    // save game map to log
+    // fmaze = formatmaze();
+    // X = dimx;
+    // Y = dimy;
+    logMaze( &test[0], 6, gameinfo->version ); 
+    // free(fmaze); 
     return 1;
 }
 
@@ -389,7 +399,6 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     bzero(&h, sizeof(s));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-
     d = (Deltas*) malloc( sizeof(Deltas) );
     init_deltas( d );
 
@@ -399,20 +408,28 @@ proto_server_mt_join_game_handler(Proto_Session *s)
     dimx = 3; // dimx = get_maze_dimx();
     dimy = 3; // dimy = get_maze_dimy();
     // rc = add_player(d);
+    // fprintf(stderr, "proto_server_mt_join_game_handler: game logic returned id = %d\n", rc);
     // if (rc > 0)
     // {
        server_gameData.version++;
        h.gstate.v0.raw = gameinfo.state = server_gameData.state = 1; // temporary test value
+       // call fimy and dimx
+       // get the maze
     //   h.gstate.v0.raw = gameinfo.state = server_gameData.state = gamestate();
     // }
     h.sver.raw = gameinfo.version = server_gameData.version;
     h.gstate.v1.raw = gameinfo.trs = ++server_gameData.trs;
+    proto_session_hdr_marshall(s, &h);
+
+    // if (rc > 0)
+    doUpdateClientsGame(d, &gameinfo);
+    clean_deltas(d);
+    free(d);
 
     pthread_mutex_unlock(&server_data_mutex);
 
-    proto_session_hdr_marshall(s, &h);
-    // prepare relpy: pID, xdim, ydim, maze
-    if (proto_session_body_marshall_int(s, player) < 0)
+    // prepare relpy body: pID, xdim, ydim, maze
+    if (proto_session_body_marshall_int(s, player) < 0) // rc instead of player
         fprintf(stderr, "proto_server_mt_join_game_handler: "
                 "proto_session_body_marshall_int failed\n");
     if (proto_session_body_marshall_int(s, dimx) < 0 )
@@ -425,11 +442,6 @@ proto_server_mt_join_game_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_join_game_handler: "
                 "proto_session_body_marshall_bytes failed\n");
 
-    doUpdateClientsGame(d, &gameinfo);
-    clean_deltas(d);
-    free(d);
-
-    // if (rc > 0)
     return proto_session_send_msg(s,1);
 }
 
@@ -440,10 +452,11 @@ proto_server_mt_move_handler(Proto_Session *s)
     char move;
     int dummy_reply = 1;
     Proto_Msg_Hdr h;
+    Deltas *d;
+    Server_GameData gameinfo;
 
     if (proto_debug())
-        fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
-        // proto_session_dump(s);
+       fprintf(stderr, "proto_server_mt_move_handler: invoked for session:\n");
 
     // Read rpc message: pID, direction
     proto_session_body_unmarshall_int(s, 0, &player_id);
@@ -452,24 +465,37 @@ proto_server_mt_move_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_move_handler: Recieved:\n"
                         "    pId: %d\n    move #%c#\n", player_id, move);
 
-    // TODO: call game logic
-    if (proto_debug())
-        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
-
-    // Write rpc reply
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-    h.sver.raw = server_gameData.version; 
-    h.gstate.v0.raw = server_gameData.state; 
+    d = (Deltas*) malloc( sizeof(Deltas) );
+    init_deltas( d );
+
+    pthread_mutex_lock(&server_data_mutex);
+
+    // rc = moveLogic();
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
+
+    // if (rc > 0)
+    // {
+       server_gameData.version++;
+       h.gstate.v0.raw = gameinfo.state = server_gameData.state = 1; // temporary test value
+       // h.gstate.v0.raw = gameinfo.state = server_gameData.state = gamestate();
+    // }
+    h.sver.raw = gameinfo.version = server_gameData.version;
+    h.gstate.v1.raw = gameinfo.trs = ++server_gameData.trs;
     proto_session_hdr_marshall(s, &h);
+    proto_session_body_marshall_int(s, dummy_reply); // rc
 
-    proto_session_body_marshall_int(s, dummy_reply);
-    rc = proto_session_send_msg(s, 1);
+    // if (rc > 0)
+    // doUpdateClientsGame(d, &gameinfo);
+    clean_deltas(d);
+    free(d);
 
-    // TODO: update subscribers
-    // doUpdateClientsGame(0);
-    return rc;
+    pthread_mutex_unlock(&server_data_mutex);
+
+    return proto_session_send_msg(s, 1);
 }
 
 static int
@@ -479,10 +505,11 @@ proto_server_mt_item_action_handler(Proto_Session *s)
     char item, action;
     int dummy_reply = 1;
     Proto_Msg_Hdr h;
+    Deltas *d;
+    Server_GameData gameinfo;
 
     if (proto_debug())
-        fprintf(stderr, "proto_server_mt_item_action_handler: invoked for session:\n");
-        // proto_session_dump(s);
+       fprintf(stderr, "proto_server_mt_item_action_handler: invoked for session:\n");
 
     // Read rpc message: pID, item, action 
     proto_session_body_unmarshall_int(s, 0, &player_id);
@@ -492,60 +519,87 @@ proto_server_mt_item_action_handler(Proto_Session *s)
         fprintf(stderr, "proto_server_mt_move_handler: Recieved:\n"
                         "    pId: %d\n    item #%c#\n    action #%c#\n", player_id, item, action);
 
-    // TODO: call game logic
-    // TODO: update game version if necesary
-    // pthread_mutex_lock(&server_data_mutex);
-    // pthread_mutex_unlock(&server_data_mutex);
-    if (proto_debug())
-        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
-
-    // rpc reply
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-    h.sver.raw = server_gameData.version; 
-    h.gstate.v0.raw = server_gameData.state; 
+    d = (Deltas*) malloc( sizeof(Deltas) );
+    init_deltas( d );
+
+    pthread_mutex_lock(&server_data_mutex);
+
+    // rc = gamelogic move();
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_move_handler: Send: game logic_reply: %d\n", dummy_reply);
+
+    // if (rc > 0)
+    // {
+       server_gameData.version++;
+       h.gstate.v0.raw = gameinfo.state = server_gameData.state = 1; // temporary test value
+       // h.gstate.v0.raw = gameinfo.state = server_gameData.state = gamestate();
+    // }
+    h.sver.raw = gameinfo.version = server_gameData.version;
+    h.gstate.v1.raw = gameinfo.trs = ++server_gameData.trs;
     proto_session_hdr_marshall(s, &h);
+    proto_session_body_marshall_int(s, dummy_reply); // rc
 
-    proto_session_body_marshall_int(s, dummy_reply);
-    rc = proto_session_send_msg(s, 1);
+    // if (rc > 0)
+    // doUpdateClientsGame(d, &gameinfo);
+    clean_deltas(d);
+    free(d);
 
-    // TODO: update subscribers
-    // doUpdateClientsGame(0);
-    return rc;
+    pthread_mutex_unlock(&server_data_mutex);
+
+    return proto_session_send_msg(s, 1);
 }
 
 static int
 proto_server_mt_leave_game_handler(Proto_Session *s)
 {
     Proto_Msg_Hdr h;
-    int rc;
+    int rc, msg_playerId;
     int dummy_reply = 1;
+    Deltas *d;
+    Server_GameData gameinfo;
 
     if (proto_debug())
         fprintf(stderr, "proto_server_mt_leave_game_handler: invoked for session:\n");
-    //proto_session_dump(s);
 
-    // Call game logic: remove player from game 
-    // TODO: update game version if necesary
-    // pthread_mutex_lock(&server_data_mutex);
-    // pthread_mutex_unlock(&server_data_mutex);
+    proto_session_body_unmarshall_int(s, 0, &msg_playerId);
     if (proto_debug())
-        fprintf(stderr, "proto_server_mt_leave_game_handler: remove player reply:%d\n", 1);
+        fprintf(stderr, "proto_server_mt_leave_ganme_handler: Recieved:\n"
+                        "    pId: %d\n", msg_playerId);
 
     bzero(&h, sizeof(h));
     h.type = proto_session_hdr_unmarshall_type(s);
     h.type += PROTO_MT_REP_BASE_RESERVED_FIRST;
-    h.sver.raw = server_gameData.version; 
-    h.gstate.v0.raw = server_gameData.state; 
+    d = (Deltas*) malloc( sizeof(Deltas) );
+    init_deltas( d );
+
+    pthread_mutex_lock(&server_data_mutex);
+
+    // rc = gamelogic remove player
+    if (proto_debug())
+        fprintf(stderr, "proto_server_mt_leave_game_handler: remove player reply:%d\n", 1);
+
+    // if (rc > 0)
+    // {
+       server_gameData.version++;
+       h.gstate.v0.raw = gameinfo.state = server_gameData.state = 1; // temporary test value
+       // h.gstate.v0.raw = gameinfo.state = server_gameData.state = gamestate();
+    // }
+    h.sver.raw = gameinfo.version = server_gameData.version;
+    h.gstate.v1.raw = gameinfo.trs = ++server_gameData.trs;
     proto_session_hdr_marshall(s, &h);
+    proto_session_body_marshall_int(s, dummy_reply); // rc
 
-    proto_session_body_marshall_int(s, dummy_reply);
-    rc = proto_session_send_msg(s, 1);
+    // if (rc > 0)
+    // doUpdateClientsGame(d, &gameinfo);
+    clean_deltas(d);
+    free(d);
 
-    // TODO: update subscribers
-    // doUpdateClientsGame(0);
-    return rc;
+    pthread_mutex_unlock(&server_data_mutex);
+
+    return proto_session_send_msg(s, 1);
 }
 
 static int proto_server_mt_numhome_handler(Proto_Session *s)
