@@ -650,7 +650,7 @@ int dropItem(int playerID,/* Deltas *d, */Item it)
     if(ptr->i->itType!=0)
     {
         pos=getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
-        maze.cells[pos].item=*(Item*)ptr->i;//not sure
+        maze.cells[pos].item=*(ptr->i);//not sure
        
         maze.cells[pos].Cell_Pos.x=ptr->i->ItemPos.x;
         maze.cells[pos].Cell_Pos.y=ptr->i->ItemPos.y;
@@ -698,7 +698,7 @@ int breakWall(int playerID,int x, int y/*, Deltas *d*/)
         
         maze.cells[pos].C_Type = CT_Floor;
         
-        resetItem(/*Deltas *d,*/*(Item*)ptr->i, ptr->team);
+        resetItem(/*Deltas *d,*/*(ptr->i), ptr->team);
         ptr->i = NULL;
         
         
@@ -723,10 +723,12 @@ int main(void)
    
     
     Item testIt;
+     
+    
 
    
     startGame();
-
+//dumpMap();
     testIt.itType=Flag_Team1;
     
     
