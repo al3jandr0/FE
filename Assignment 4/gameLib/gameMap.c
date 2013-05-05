@@ -78,10 +78,19 @@ typedef struct
 } Player;
 */
 
+typedef enum
+{
+    None = 0,
+    Flag_Team1 = 1,
+    Flag_Team2 = 2,
+    Shovel = 3
+} Item_Type;
+
 typedef struct
 {
-    int Type;
-
+    Item_Type itType;
+    Position ItemPos;
+    //int hasAbility;
 } Item;
 
 struct player
@@ -275,6 +284,28 @@ Cell *JailList0 = malloc(numOfJails[0] * sizeof *JailList0);
 Cell *JailList1 = malloc(numOfJails[1] * sizeof *JailList1);
 */
 
+
+int getPos(int col, int row)
+{
+    int pos;
+    if (row == 0 && col == 0)
+    {
+        pos = 0;
+    }
+    else if (row == 0)
+    {
+        pos = col;
+    }
+    else if (col == 0)
+    {
+        pos = row * maze.dimensions.y;
+    }
+    else
+    {
+        pos = row * MAX + col;
+    }
+    return pos;
+}
 
 //extern int
 int findNumHome(int par)
@@ -831,6 +862,241 @@ Position *findFreeHome(int team)
     return newPos;
 }
 
+int pickUpItem(int playerID/* Deltas *d */)
+{
+    struct player *ptr = NULL;
+    // Cell possibleItemCell;
+    Item *itPtr = NULL;
+    int pos;
+
+    ptr = search_in_list(playerID, NULL);
+
+
+    pos = getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
+
+    //maze.cells[pos].Cell_Pos.x=ptr->PlayerPos.x;
+    //maze.cells[pos].Cell_Pos.y=ptr->PlayerPos.y;
+    if (maze.cells[pos].containItem == TRUE)
+    {
+
+        itPtr->ItemPos.x = ptr->PlayerPos.x;
+        itPtr->ItemPos.y = ptr->PlayerPos.y;
+
+
+        ptr->i = itPtr;
+
+
+        maze.cells[pos].containItem = FALSE;/*
+        add_delta_player(d, playerArray[playerID], sizeof(Player));
+        add_delta_cell(d, Cell, sizeof(Cell));
+        add_delta_item(d, item, sizeof(item));
+                             */
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int resetItem(/*Deltas *d,*/ Item it, int team)
+{
+    //Item *itPtr = NULL;
+    int row, col, pos;
+    int dx = dimX();
+    int dy = dimY();
+
+
+    //printf("it.ItemPos.x before: %d\n", it.ItemPos.x);
+    // printf("it.ItemPos.y before: %d\n", it.ItemPos.y);
+
+    if (it.itType == 3)
+    {
+
+        Position *NewPos = NULL;
+        NewPos = findFreeHome(team);
+        pos = getPos(NewPos->y, NewPos->x);
+
+        // printf("it.ItemPos.x before: %d\n", it.ItemPos.x);
+        // printf("it.ItemPos.y before: %d\n", it.ItemPos.y);
+
+        it.ItemPos.x = NewPos->x;
+        it.ItemPos.y = NewPos->y;
+        //  it.Cell.containItem=TRUE;
+        //  it.ItemPos=maze.cells[NewPos].Cell_Pos;
+        // printf("it.ItemPos.x after: %d\n", it.ItemPos.x);
+        // printf("it.ItemPos.y after: %d\n", it.ItemPos.y);
+        // printf("maze.cells[pos].Cell_Pos.x: %d\n", maze.cells[pos].Cell_Pos.x);
+        // printf("maze.cells[pos].Cell_Pos.y: %d\n", maze.cells[pos].Cell_Pos.y);
+
+        maze.cells[pos].Cell_Pos.x = it.ItemPos.x;
+        maze.cells[pos].Cell_Pos.y = it.ItemPos.y;
+        maze.cells[pos].containItem = TRUE;
+        maze.cells[pos].item = it;
+
+        // it.ItemPos=NewPos;
+    }
+
+    // printf("it.ItemPos.x after: %d\n", it.ItemPos.x);
+    // printf("it.ItemPos.y after: %d\n", it.ItemPos.y);
+    // printf("maze.cells[pos].Cell_Pos.x: %d\n", maze.cells[pos].Cell_Pos.x);
+    // printf("maze.cells[pos].Cell_Pos.y: %d\n", maze.cells[pos].Cell_Pos.y);
+
+
+
+    else if (it.itType = 1)//position at the part of team1
+    {
+
+
+        do
+        {
+
+            row = (rand() % (dx / 2) + 0);
+            col = (rand() % (dy / 2) + 0);
+            //     printf("row: %d\n", row);
+            //     printf("col %d\n", col);
+
+            //       printf("dx: %d\n", dx);
+            //       printf("dy %d\n", dy);
+
+            pos = getPos(col, row);
+
+            //      printf("it.ItemPos.x stays: %d\n", it.ItemPos.x);
+            //      printf("it.ItemPos.y stays: %d\n", it.ItemPos.y);
+
+        }
+        while (maze.cells[pos].C_Type != CT_Floor);
+
+
+
+        it.ItemPos.x = row;
+        it.ItemPos.y = col;
+
+        maze.cells[pos].Cell_Pos.x = it.ItemPos.x;
+        maze.cells[pos].Cell_Pos.y = it.ItemPos.y;
+        maze.cells[pos].item = it;
+        maze.cells[pos].containItem = TRUE;
+
+        return 1;
+
+    }
+    else if (it.itType = 2)//position at the part of team2
+    {
+        do
+        {
+            row = (rand()  % dx + (dx / 2));
+            col = (rand()  % dy + (dy / 2));
+
+
+            pos = getPos(col, row);
+
+        }
+        while (maze.cells[pos].C_Type != CT_Floor);
+        it.ItemPos.x = row;
+        it.ItemPos.y = col;
+
+        maze.cells[pos].Cell_Pos.x = it.ItemPos.x;
+        maze.cells[pos].Cell_Pos.y = it.ItemPos.y;
+        maze.cells[pos].item = it;
+        maze.cells[pos].containItem = TRUE;
+
+        return 1;
+    }
+
+
+    else
+    {
+        return -1;
+    }
+}
+
+
+int dropItem(int playerID,/* Deltas *d, */Item it)
+{
+    struct player *ptr = NULL;
+
+    Item *itPtr = NULL;
+    int pos;
+
+    ptr = search_in_list(playerID, NULL);
+    ptr = search_in_list(playerID, NULL);
+
+
+
+
+
+
+
+
+    if (ptr->i->itType != 0)
+    {
+        pos = getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
+        maze.cells[pos].item = *(ptr->i); //not sure
+
+        maze.cells[pos].Cell_Pos.x = ptr->i->ItemPos.x;
+        maze.cells[pos].Cell_Pos.y = ptr->i->ItemPos.y;
+        it.ItemPos.x = maze.cells[pos].Cell_Pos.x;
+        it.ItemPos.y = maze.cells[pos].Cell_Pos.y;
+
+        ptr->i->itType = 0;
+        //whereDropped.containItem= TRUE;
+
+
+
+
+
+        /*        add_delta_player(d, playerArray[playerID], sizeof(Player));
+             add_delta_cell(d, Cell, sizeof(Cell));
+             add_delta_item(d, item, sizeof(item));
+          */
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int breakWall(int playerID, int x, int y/*, Deltas *d*/)
+{
+    struct player *ptr = NULL;
+
+    int pos;
+
+    ptr = search_in_list(playerID, NULL);
+
+
+    pos = getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
+
+
+    if ((ptr->i->itType == Shovel) && (maze.cells[pos].C_Type == CT_Wall))
+    {
+
+        ptr->PlayerPos.x = x;
+        ptr->PlayerPos.y = y;
+
+        //  Player->PlayerPos->y=CheckCell->Cell_Pos->y;
+
+        maze.cells[pos].C_Type = CT_Floor;
+
+        resetItem(/*Deltas *d,*/ * (ptr->i), ptr->team);
+        ptr->i = NULL;
+
+
+        /*
+        add_delta_player(d, Player, sizeof(Player));
+        add_delta_cell(d, CheckCell, sizeof(Cell));
+        add_delta_item(d, item, sizeof(item));
+        */
+        return 1;
+
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 int addPlayer() //(Deltas *d)
 {
     struct player *newPlayer = NULL;
@@ -1293,17 +1559,19 @@ void moveTest(int num)
     }
 }
 
+int itemTest(void)
+{
+    Item testIt;
+    testIt.itType = Flag_Team1;
+    testIt.ItemPos.x = 0;
+    testIt.ItemPos.y = 0;
+    resetItem(testIt, 1);
+}
+
 int main(int argc, char const *argv[])
 {
-
-    //    addPlayerTest(200);
-    //    homeAndJailTest();
-
     startGame();
-
-    moveTest(3);
-    //dumpMap();
-
+    dumpMap();
     return 0;
 }
 
