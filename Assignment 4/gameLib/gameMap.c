@@ -107,10 +107,11 @@ typedef struct
 {
     Cell_Type C_Type;
     Position Cell_Pos;
-    struct player  *p;
+    struct player *p;
     Team Cell_Team;
-    Item *o;
+    Item item;
     int occupied;
+    int containItem;
 } Cell;
 
 typedef struct
@@ -686,7 +687,7 @@ int loadMap()
 
             if (c == 's' || c == 'S' || c == 'F' || c == 'f')
             {
-                newItem.Type = c;
+                newItem.itType = c;
             }
 
             if (c == '#')
@@ -1237,7 +1238,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
             {
                 tempPlayer->PlayerPos.x = JailList0[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
-                JailList0[p].occupied = team;
+                JailList0[p].occupied = tempPlayer->team;
                 tempPlayer->State = 1;
                 return 1;
             }
@@ -1253,7 +1254,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
                 tempPlayer->PlayerPos.x = JailList1[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
-                tempPlayer->State = team;
+                tempPlayer->State = tempPlayer->team;
                 return 1;
             }
         }
