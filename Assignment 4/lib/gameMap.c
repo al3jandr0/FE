@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include "general_utils.h"
+#include "gameMap.h"
 
 enum { FALSE, TRUE };
 
@@ -44,86 +45,6 @@ int gamePlayingFlag = FALSE;
 int playerCount = 0;
 
 #define MAX 200
-
-typedef struct
-{
-    int x;
-    int y;
-} Position;
-
-typedef enum
-{
-    CT_Floor = ' ',
-    CT_Wall = '#',
-    CT_Jailj = 'j',
-    CT_JailJ = 'J',
-    CT_Homeh = 'h',
-    CT_HomeH = 'H',
-} Cell_Type;
-
-typedef enum
-{
-    Team1 = 1,
-    Team2 = 2
-} Team;
-
-/*
-typedef struct
-{
-    Team team;
-    Position PlayerPos;
-    int ID;
-    int State;
-    Item *i;
-} Player;
-*/
-
-typedef enum
-{
-    None = 0,
-    Flag_Team1 = 1,
-    Flag_Team2 = 2,
-    Shovel = 3
-} Item_Type;
-
-typedef struct
-{
-    Item_Type itType;
-    Position ItemPos;
-    //int hasAbility;
-} Item;
-
-struct player
-{
-    int team;
-    Position PlayerPos;
-    int ID;
-    int State;
-    Item *i;
-    struct player *next;
-};
-
-typedef struct
-{
-    Cell_Type C_Type;
-    Position Cell_Pos;
-    struct player  *p;
-    Team Cell_Team;
-    Item *o;
-    int occupied;
-} Cell;
-
-typedef struct
-{
-    Cell *cells;
-    int numFloor;
-    int numWall;
-    int numCells;
-    int numOfJails[2];
-    int numOfHomes[2];
-    Position dimensions;
-} Maze;
-
 struct player *head = NULL;
 struct player *curr = NULL;
 
@@ -686,7 +607,7 @@ int loadMap()
 
             if (c == 's' || c == 'S' || c == 'F' || c == 'f')
             {
-                newItem.Type = c;
+                newItem.itType = c;
             }
 
             if (c == '#')
@@ -1237,7 +1158,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
             {
                 tempPlayer->PlayerPos.x = JailList0[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList0[p].Cell_Pos.y;
-                JailList0[p].occupied = team;
+                JailList0[p].occupied = tempPlayer->team;
                 tempPlayer->State = 1;
                 return 1;
             }
@@ -1253,7 +1174,7 @@ int jailPlayer(struct player *tempPlayer)// Player tempPlayer)
                 tempPlayer->PlayerPos.x = JailList1[p].Cell_Pos.x;
                 tempPlayer->PlayerPos.y = JailList1[p].Cell_Pos.y;
                 JailList1[p].occupied = 1;
-                tempPlayer->State = team;
+                tempPlayer->State = tempPlayer->team;
                 return 1;
             }
         }

@@ -19,7 +19,6 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ****************************************************************************/
-
 #ifndef GAMELIB_H
 #define GAMELIB_H
 
@@ -33,7 +32,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <pthread.h>
-#include "general_utils.h"
+//#include general_utils.c
 
 typedef struct
 {
@@ -97,10 +96,11 @@ typedef struct
 {
     Cell_Type C_Type;
     Position Cell_Pos;
-    struct player  *p;
+    struct player *p;
     Team Cell_Team;
-    Item *o;
+    Item item;
     int occupied;
+    int containItem;
 } Cell;
 
 typedef struct
