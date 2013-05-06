@@ -532,7 +532,7 @@ int resetGame(Deltas *d)
 
                 if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
                 {
-                    newPlayer->PlayerPos = *newPlayerPos;
+                    ptr->PlayerPos = *newPlayerPos;
                 }
 
                 add_delta_player(d, ptr, sizeof(struct player));
@@ -1278,7 +1278,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
             if ((c == 'R' || c == 'r' || c == '4'))
             {
-                breakWall(playerID, (ptr->PlayerPos.y) + 1, (ptr->PlayerPos.x) + -, d);
+                breakWall(playerID, (ptr->PlayerPos.y) + 1, (ptr->PlayerPos.x) + 0, d);
             }
 
             // IDid move check
@@ -1290,7 +1290,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
                 if (ptr->i->itType == 3)
                 {
-                    dropItem(playerID, d, ptr->i);
+                    dropItem(playerID, d, *(ptr->i));
                 }
 
                 tempCellXU.occupied = ptr->team;
@@ -1310,7 +1310,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
                 if (ptr->i->itType == 3)
                 {
-                    dropItem(playerID, d, ptr->i);
+                    dropItem(playerID, d, *(ptr->i));
                 }
 
 
@@ -1331,7 +1331,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
                 pickUpItem(playerID, d);
                 if (ptr->i->itType == 3)
                 {
-                    dropItem(playerID, d, ptr->i);
+                    dropItem(playerID, d, *(ptr->i));
                 }
 
                 tempCellYL.occupied = ptr->team;
@@ -1350,7 +1350,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
                 pickUpItem(playerID, d);
                 if (ptr->i->itType == 3)
                 {
-                    dropItem(playerID, d, ptr->i);
+                    dropItem(playerID, d, *(ptr->i));
                 }
 
                 tempCellYR.occupied = ptr->team;
@@ -1455,6 +1455,7 @@ addToMap()
     // maze[item.x][item.y] = 'item.type'
 }
 
+/*
 void addPlayerTest(int num)
 {
     int i;
@@ -1571,6 +1572,7 @@ int itemTest(void)
     resetItem(testIt, 1);
 }
 
+*/
 int main(int argc, char const *argv[])
 {
     startGame();
