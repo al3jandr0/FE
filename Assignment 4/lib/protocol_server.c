@@ -34,7 +34,8 @@
 #include "server_types.h"
 #include "protocol_event_msg.h"
 #include "general_utils.h"
-#include "./../lib/maze.h"
+#include "gameMap.h"
+//#include "./../lib/maze.h"
 
 #define PROTO_SERVER_MAX_EVENT_SUBSCRIBERS 1024
 
@@ -601,7 +602,7 @@ proto_server_mt_leave_game_handler(Proto_Session *s)
 
     return proto_session_send_msg(s, 1);
 }
-
+/*
 static int proto_server_mt_numhome_handler(Proto_Session *s)
 {
     int numhome, rc, teamNo;
@@ -852,7 +853,7 @@ static int proto_server_mt_dump_handler(Proto_Session *s)
     // TODO: return failed if an error occours
     return rc;
 }
-
+*/
 
 extern int
 proto_server_init(void)
@@ -874,7 +875,7 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_MOVE, proto_server_mt_move_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_ITEM_ACTION, proto_server_mt_item_action_handler);
     proto_server_set_req_handler( PROTO_MT_REQ_BASE_GOODBYE, proto_server_mt_leave_game_handler);
-
+/*
     proto_server_set_req_handler( PROTO_MT_REQ_NUM_HOME , proto_server_mt_numhome_handler  );
     proto_server_set_req_handler( PROTO_MT_REQ_NUM_JAIL , proto_server_mt_numjail_handler  );
     proto_server_set_req_handler( PROTO_MT_REQ_NUM_WALL , proto_server_mt_numwall_handler  );
@@ -882,7 +883,7 @@ proto_server_init(void)
     proto_server_set_req_handler( PROTO_MT_REQ_MAP_DIM  , proto_server_mt_dim_handler      );
     proto_server_set_req_handler( PROTO_MT_REQ_CELL_INFO, proto_server_mt_cinfo_handler    );
     proto_server_set_req_handler( PROTO_MT_REQ_MAP_DUMP , proto_server_mt_dump_handler     );
-
+*/
     pthread_mutex_lock(&server_data_mutex);
     server_gameData.version = 0;
     server_gameData.state = -2;
@@ -937,9 +938,10 @@ void printlist_Player( LinkedList *il)
    int ii = 0;
    while ( il !=NULL )
    {
-      Player *val = (Player*)il->value;
-      printf("Player:\n  id = %d\n  pid = %d\n  team = %d\n  x = %d\n  "
-             "y = %d\n  state = %c\n", val->ID, val->PID, val->team,
+      //Player *val = (Player*)il->value;
+      struct player *val = (struct player*)il->value;
+      printf("Player:\n  id = %d\n  team = %d\n  x = %d\n  "
+             "y = %d\n  state = %c\n", val->ID, val->team,
              val->PlayerPos.x, val->PlayerPos.y, val->State);
       il = il->next;
       ii++;

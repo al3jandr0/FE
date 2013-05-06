@@ -27,7 +27,8 @@
 #include "../lib/types.h"
 #include "../lib/protocol_server.h"
 #include "../lib/protocol_utils.h"
-#include "../lib/maze.h"
+//#include "../lib/maze.h"
+#include "../lib/gameMap.h"
 #include "../lib/server_types.h"
 
 int
@@ -134,7 +135,7 @@ main(int argc, char **argv)
     }
 
     // load game map into maze var (maze is located in maze.c)
-    loadMap();
+    // loadMap();
 
     shell(NULL);
 

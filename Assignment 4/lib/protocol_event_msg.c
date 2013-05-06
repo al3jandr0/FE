@@ -12,9 +12,13 @@
 
 #include "protocol_event_msg.h"
 #include "client_types.h"
-#include "maze.h"
+//#include "maze.h"
+#include "gameMap.h"
 #include "general_utils.h"
 #include <stdio.h>
+
+// quick hack for merging soruce code
+#define Player struct player 
 
 // id     Team  x     y     state item  item 
 
@@ -28,7 +32,7 @@ proto_server_test_deltas(Deltas *d)
    p.PlayerPos.x = 1;
    p.PlayerPos.y = 2;
    p.ID  = 10;
-   p.PID = 10;
+   //p.PID = 10;
    p.State = 4;
    // p.holdFlag = 1;
    // p.holdShovel = 0;
@@ -95,8 +99,8 @@ proto_server_marshall_deltas(Proto_Session *s, Deltas *d)
       p_infs[5] = 'N'; // p_infs[5] = (pval->holdShovel)? 'Y':'N'; 
       if (proto_debug())
          fprintf(stderr, "player %d: #%d#, #%d#, #%d#, #%d#, #%c#, #%c#\n", 
-            pval->PID, (int)p_infs[0], (int)p_infs[1], (int)p_infs[2] , (int)p_infs[3], p_infs[4], p_infs[5]);
-      proto_session_body_marshall_int(s, pval->PID);
+            pval->ID, (int)p_infs[0], (int)p_infs[1], (int)p_infs[2] , (int)p_infs[3], p_infs[4], p_infs[5]);
+      proto_session_body_marshall_int(s, pval->ID);
       proto_session_body_marshall_bytes(s, 6, &p_infs[0]); 
       ll = ll->next;
    }
