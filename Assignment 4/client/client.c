@@ -31,6 +31,38 @@
 
 #define STRLEN 81
 
+int print_cells_arroud()
+{
+   int I, J, i, j, N;
+
+   N = 4;
+
+   pthread_mutex_lock(&client_data_mutex);
+
+   for (i = playerdata.y-N; i < playerdata.y+N; i++)
+   {
+      for (j = playerdata.x-N; j < playerdata.x+N; j++)
+      {
+          if ( i < 0 )
+             printf("x");
+          else if ( i >= themaze.rows )
+             printf("x");
+          else if (j < 0)
+             printf("x");
+          else if ( j >= themaze.columns )
+             printf("x");
+          else if ( i==playerdata.y && j==playerdata.x)
+             printf("p");
+          else
+             printf("%c", themaze.maze[ i*themaze.columns + j ]);
+      }
+             printf("\n");
+   }
+
+   pthread_mutex_unlock(&client_data_mutex);
+   fflush(stdout);
+}
+
 typedef enum
 {
     FALSE = 0,
@@ -461,6 +493,11 @@ int doCMDS(Client *C, char *cmdInput)
         {
             rc = print_client_data(); 
             return rc;
+        }
+        if ( strcmp(*(tokens + 0), "map") == 0 )
+        {
+            print_cells_arroud();
+            return 1;
         }
         if ( strcmp(*(tokens + 0), "connect") == 0 )
         {

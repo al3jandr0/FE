@@ -31,6 +31,12 @@
 #include "../lib/gameMap.h"
 #include "../lib/server_types.h"
 
+int print_cells_arround()
+{
+
+
+}
+
 int
 doUpdateClients(void)
 {
@@ -134,10 +140,14 @@ main(int argc, char **argv)
         exit(-1);
     }
 
-    // load game map into maze var (maze is located in maze.c)
-    // loadMap();
+    // initialize game
+    Deltas d;
+    init_deltas( &d );
+    if ( startGame( &d ) < 0 ) // ignoring flags atm
+       return 0;
 
     shell(NULL);
+    stopGame();
 
     return 0;
 }

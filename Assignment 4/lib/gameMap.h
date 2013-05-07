@@ -32,7 +32,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <pthread.h>
-//#include general_utils.c
+#include "general_utils.h"
 
 typedef struct
 {
@@ -113,5 +113,22 @@ typedef struct
     int numOfHomes[2];
     Position dimensions;
 } Maze;
+
+int startGame(Deltas *d); // why does it takes deltas. It hsould not. flags should not show up at start_
+int stopGame();
+int resetGame(Deltas *d);
+int gameStat();
+int pickUpItem(int playerID, Deltas *d);
+int dropItem(int playerID, Deltas *d, Item it);
+// int breakWall(int playerID, int x, int y, Deltas *d); // do I need this ? 
+int addPlayer(Deltas *d);
+int removePlayer (int playerID, Deltas *d);
+int movePlayer (int playerID, Deltas *d, char c);  //['U', 'D', 'L', 'R']
+void formatMaze(char * mazeOutput);
+int dimX();
+int dimY();
+
+
+
 
 #endif

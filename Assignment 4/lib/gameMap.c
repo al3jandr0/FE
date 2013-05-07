@@ -181,7 +181,6 @@ void print_list(void)
 }
 
 Maze maze;
-
 //Player *PlayerList;
 //Player* PlayerList = malloc(MAX * sizeof(Player));
 
@@ -210,7 +209,7 @@ Cell *JailList1 = malloc(numOfJails[1] * sizeof *JailList1);
 
 int getPos(int col, int row)
 {
-    int pos;
+/*    int pos;
     if (row == 0 && col == 0)
     {
         pos = 0;
@@ -228,6 +227,8 @@ int getPos(int col, int row)
         pos = row * MAX + col;
     }
     return pos;
+*/
+    return row * maze.dimensions.y + col;
 }
 
 //extern int
@@ -368,7 +369,8 @@ int startGame(Deltas *d)
 
         printf("Loading the Map\n");
 
-        loadMap();
+        if (loadMap() < 0)
+           return -1;
 
         Item FlagT0;
         resetItem(d, FlagT0, 0);
@@ -384,9 +386,7 @@ int startGame(Deltas *d)
 
         gamePlayingFlag = TRUE;
         return 1;
-
     }
-
     else
         printf("Cannot start the Game yet.\n");
 
@@ -557,9 +557,9 @@ int resetGame(Deltas *d)
 int loadMap()
 {
     FILE *mapFile;
-    if ((mapFile = fopen("daGame.map", "r")) == NULL)
+    if ((mapFile = fopen("./../lib/daGame.map", "r")) == NULL)
     {
-        printf("Cannot open file.\n");
+        perror ("Cannot Open daGame.map. ");
         return -1;
     }
 
@@ -1021,9 +1021,10 @@ int breakWall(int playerID, int x, int y, Deltas *d)
 
     ptr = search_in_list(playerID, NULL);
 
-
     pos = getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
 
+    if ( ptr->i == NULL )
+       return -1;
 
     if ((ptr->i->itType == Shovel) && (maze.cells[pos].C_Type == CT_Wall))
     {
@@ -1290,6 +1291,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
                 pickUpItem(playerID, d);
 
+		if (ptr->i != NULL)
                 if (ptr->i->itType == 3)
                 {
                     dropItem(playerID, d, *(ptr->i));
@@ -1310,6 +1312,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
                 ptr->PlayerPos.x++;
                 pickUpItem(playerID, d);
 
+		if (ptr->i != NULL)
                 if (ptr->i->itType == 3)
                 {
                     dropItem(playerID, d, *(ptr->i));
@@ -1331,6 +1334,8 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
             {
                 ptr->PlayerPos.y--;
                 pickUpItem(playerID, d);
+
+		if (ptr->i != NULL)
                 if (ptr->i->itType == 3)
                 {
                     dropItem(playerID, d, *(ptr->i));
@@ -1350,6 +1355,8 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
             {
                 ptr->PlayerPos.y++;
                 pickUpItem(playerID, d);
+
+		if (ptr->i != NULL)
                 if (ptr->i->itType == 3)
                 {
                     dropItem(playerID, d, *(ptr->i));
@@ -1407,11 +1414,9 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
     return -1;
 }
 
-char *formatMaze()
+void formatMaze(char * mazeOutput)
 {
     int x = (maze.dimensions.y * maze.dimensions.x);
-
-    char *mazeOutput = (char *)malloc(x);
 
     int i;
 
@@ -1434,7 +1439,7 @@ char *formatMaze()
 
     }
 
-    return mazeOutput;
+    return;
 }
 
 int dimX()
@@ -1575,13 +1580,14 @@ int itemTest(void)
 }
 
 */
+/*
 int main(int argc, char const *argv[])
 {
     //startGame();
     //dumpMap();
     return 0;
 }
-
+*/
 
 /*
 //extern int

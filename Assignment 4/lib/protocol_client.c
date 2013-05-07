@@ -358,8 +358,7 @@ do_join_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
        {
           if (proto_debug())
              fprintf(stderr, "do_join_game_rpc: returned player id = %d\n", rc);           
-          return rc;
-
+          return 1;
        } 
 
        if (proto_session_body_unmarshall_int(s, sizeof(int), &X) < 0)
@@ -435,14 +434,19 @@ do_move_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt, char data)
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
-        // wait until we have recieved the envent update
-        wait_for_event(h.sver.raw);
 
         if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
             fprintf(stderr, "do_move_rpc: proto_session_body_unmarshall_int failed\n");
         if (proto_debug())
             fprintf(stderr, "do_move_rpc: unmarshalled response rc = %d, game version = %llu, game state = %d \n",
                              rc, h.sver.raw, h.gstate.v0.raw);
+        if (rc > 0)
+        {
+           // wait until we have recieved the envent update
+           wait_for_event(h.sver.raw);
+        }
+        else
+           return 1;
     }
     else
     {
