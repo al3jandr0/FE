@@ -1,7 +1,7 @@
 /******************************************************************************
-* Gurwinder Singh 
+* Gurwinder Singh
 * Distributed Systems Spring 2013
-* CTF - Game Logic 
+* CTF - Game Logic
 * Team - For Example
 ******************************************************************************/
 
@@ -14,7 +14,7 @@ enum { FALSE, TRUE };
 #define debugPrint(...) \
     do { if (DEBUG) fprintf(stderr, __VA_ARGS__); } while (0)
 
-	
+
 #define MAX 200
 
 // Game Info
@@ -27,6 +27,12 @@ struct player *curr = NULL;
 
 // For Maze
 Maze maze;
+
+Item FlagT0;
+Item ShovelT0;
+Item FlagT1;
+Item ShovelT1;
+
 Cell *HomeList0;
 Cell *HomeList1;
 Cell *JailList0;
@@ -245,11 +251,11 @@ void print_list(void)
     while (ptr != NULL)
     {
         printf("\n Player Id : [%d] \n Player Team : [%d]\n Player Position : [%d,%d]\n Player State : [%d]\n", ptr->ID, ptr->team, ptr->PlayerPos.x, ptr->PlayerPos.y, ptr->State);
-        
-		printf("Here is a mini view of the player:\n");
-		
 
-		ptr = ptr->next;
+        printf("Here is a mini view of the player:\n");
+
+
+        ptr = ptr->next;
     }
     return;
 }
@@ -259,46 +265,46 @@ void print_list(void)
 ******************************************************************************/
 int print_cells_arroud(int id)
 {
-   int x,y, i, j, N;
-   struct player *ptr = NULL;
+    int x, y, i, j, N;
+    struct player *ptr = NULL;
 
-   N = 4;
-   if (gamePlayingFlag == TRUE)
-   {
+    N = 4;
+    if (gamePlayingFlag == TRUE)
+    {
 
         ptr = search_in_list(id, NULL);
 
         if (ptr == NULL)
         {
-           fprintf(stderr, "@print_cells_arround: ERROR: search_in_list(id = %d) returned NULL\n", id);
-           return -1;
-        } 
- 
+            fprintf(stderr, "@print_cells_arround: ERROR: search_in_list(id = %d) returned NULL\n", id);
+            return -1;
+        }
+
         x = ptr->PlayerPos.x;
         y = ptr->PlayerPos.y;
 
-        for (i = y-N; i < y+N; i++)
+        for (i = y - N; i < y + N; i++)
         {
-            for (j = x-N; j < x+N; j++)
+            for (j = x - N; j < x + N; j++)
             {
-               if ( i < 0 )
-                  printf("x");
-               else if ( i >= 200 )
-                  printf("x");
-               else if (j < 0)
-                  printf("x");
-               else if ( j >= 200 )
-                  printf("x");
-               else if ( i==y && j==x)
-                  printf("p");
-               else
-                  printf("%c", cellInfo(i , j).C_Type );
+                if ( i < 0 )
+                    printf("x");
+                else if ( i >= 200 )
+                    printf("x");
+                else if (j < 0)
+                    printf("x");
+                else if ( j >= 200 )
+                    printf("x");
+                else if ( i == y && j == x)
+                    printf("p");
+                else
+                    printf("%c", cellInfo(i , j).C_Type );
             }
-             printf("\n");
+            printf("\n");
         }
         fflush(stdout);
-   }
-   return 1;
+    }
+    return 1;
 }
 
 /******************************************************************************
@@ -406,7 +412,7 @@ Cell cellInfo(int row, int column)
 }
 
 /******************************************************************************
-* Starts the Game 
+* Starts the Game
 ******************************************************************************/
 int startGame()
 {
@@ -423,36 +429,32 @@ int startGame()
         printf("Loading the Map\n");
 
         if (loadMap() < 0)
-           return -1;
+            return -1;
 
-		// Add in Flag and Shovel for T0
-        Item FlagT0;
+        // Add in Flag and Shovel for T0
         resetItem(d, FlagT0, 0);
-		
-		Item ShovelT0;
+
         resetItem(d, ShovelT0, 0);
 
-		// Add in Flag and Shovel for T1
-        Item FlagT1;
+        // Add in Flag and Shovel for T1
         resetItem(d, FlagT1, 1);
 
-        Item ShovelT1;
         resetItem(d, ShovelT1, 1);
 
-		// Now Game is Playing
+        // Now Game is Playing
         gamePlayingFlag = TRUE;
-		
+
         return 1;
     }
     else
         printf("Cannot start the Game yet.\n");
 
-	// Error. 
+    // Error.
     return -1;
 }
 
 /******************************************************************************
-* Fully Stops the Game 
+* Fully Stops the Game
 ******************************************************************************/
 int stopGame()
 {
@@ -478,13 +480,13 @@ int stopGame()
             }
         }
 
-		// Free everything
+        // Free everything
         free(HomeList0);
         free(HomeList1);
         free(JailList0);
         free(JailList1);
 
-		// Clean up the maze
+        // Clean up the maze
         maze.numFloor = 0;
         maze.numWall = 0;
         maze.numCells = 0;
@@ -496,83 +498,79 @@ int stopGame()
         maze.dimensions.y = -1;
         free(maze.cells);
 
-		// Reset the Counter
+        // Reset the Counter
         playerCount = 0;
 
-		// Note Playing Game now. 
+        // Note Playing Game now.
         gamePlayingFlag = FALSE;
-		
+
         return 1;
     }
 
-		// Error
-        return -1;
+    // Error
+    return -1;
 
 }
 
 /******************************************************************************
-* Reset the Game for Next Round 
+* Reset the Game for Next Round
 ******************************************************************************/
 int resetGame(Deltas *d)
 {
-        printf("Starting the Game\n");
+    printf("Starting the Game\n");
 
-        HomeList0 = malloc(MAX * sizeof(Cell));
-        HomeList1 = malloc(MAX * sizeof(Cell));
-        JailList0 = malloc(MAX * sizeof(Cell));
-        JailList1 = malloc(MAX * sizeof(Cell));
+    HomeList0 = malloc(MAX * sizeof(Cell));
+    HomeList1 = malloc(MAX * sizeof(Cell));
+    JailList0 = malloc(MAX * sizeof(Cell));
+    JailList1 = malloc(MAX * sizeof(Cell));
 
-		printf("Loading the Map\n");
+    printf("Loading the Map\n");
 
-        if (loadMap() < 0)
-           return -1;
+    if (loadMap() < 0)
+        return -1;
 
-		// Add in Flag and Shovel for T0
-        Item FlagT0;
-        resetItem(d, FlagT0, 0);
-		add_delta_item(d, &FlagT0, sizeof(Item));
-		
-		Item ShovelT0;
-        resetItem(d, ShovelT0, 0);
-		add_delta_item(d, &ShovelT0, sizeof(Item));
+    // Add in Flag and Shovel for T0
+    resetItem(d, FlagT0, 0);
+    add_delta_item(d, &FlagT0, sizeof(Item));
+
+    resetItem(d, ShovelT0, 0);
+    add_delta_item(d, &ShovelT0, sizeof(Item));
 
 
-		// Add in Flag and Shovel for T1
-        Item FlagT1;
-        resetItem(d, FlagT1, 1);
-		add_delta_item(d, &FlagT1, sizeof(Item));
+    // Add in Flag and Shovel for T1
+    resetItem(d, FlagT1, 1);
+    add_delta_item(d, &FlagT1, sizeof(Item));
 
-        Item ShovelT1;
-        resetItem(d, ShovelT1, 1);
-		add_delta_item(d, &ShovelT1, sizeof(Item));
-		
-        int i;
-        struct player *ptr = NULL;
-        Position *newPlayerPos = NULL;
+    resetItem(d, ShovelT1, 1);
+    add_delta_item(d, &ShovelT1, sizeof(Item));
 
-        for ( i = 0; i < playerCount; ++i)
+    int i;
+    struct player *ptr = NULL;
+    Position *newPlayerPos = NULL;
+
+    for ( i = 0; i < playerCount; ++i)
+    {
+        ptr = search_in_list(i, NULL);
+
+        if (NULL == ptr)
         {
-            ptr = search_in_list(i, NULL);
-
-            if (NULL == ptr)
-            {
-            }
-            else
-            {
-                newPlayerPos = findFreeHome(ptr->team);
-
-                if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
-                {
-                    ptr->PlayerPos = *newPlayerPos;
-                }
-                add_delta_player(d, ptr, sizeof(struct player));
-            }
         }
-		
-		// Now Game is Playing
-        gamePlayingFlag = TRUE;
+        else
+        {
+            newPlayerPos = findFreeHome(ptr->team);
 
-        return 1;
+            if (newPlayerPos->x != NULL && newPlayerPos->y != NULL)
+            {
+                ptr->PlayerPos = *newPlayerPos;
+            }
+            add_delta_player(d, ptr, sizeof(struct player));
+        }
+    }
+
+    // Now Game is Playing
+    gamePlayingFlag = TRUE;
+
+    return 1;
 }
 
 /******************************************************************************
@@ -609,18 +607,18 @@ int loadMap()
     maze.cells = malloc((columnCounter * rowCounter) * sizeof(Cell));
 
     int currentIndex = 0;
-	
+
     while ((c = fgetc(mapFile)) != EOF)
     {
         if (c != 10)
         {
             Cell newCell;
-			
+
             newCell.C_Type = c;
-			
+
             newCell.Cell_Pos.x = currentIndex / maze.dimensions.x;
             newCell.Cell_Pos.y = currentIndex % maze.dimensions.y;
-			
+
             if (newCell.Cell_Pos.y < (MAX / 2))
             {
                 newCell.Cell_Team = Team1;
@@ -629,9 +627,9 @@ int loadMap()
             {
                 newCell.Cell_Team = Team2;
             }
-			
+
             newCell.p = NULL;
-			
+
             maze.cells[currentIndex] = newCell;
 
             Item newItem;
@@ -704,6 +702,82 @@ void dumpMap()
 }
 
 /******************************************************************************
+* Cell Flag check
+******************************************************************************/
+int CellContainFlag(Cell c, Item it)
+{
+    if ((c.Cell_Pos.x == it.ItemPos.x) && (c.Cell_Pos.y == it.ItemPos.y))
+    {
+        debugPrint("Cell at pos x has item: %d\n", c.Cell_Pos.x);
+        debugPrint("Cell at pos y has item: %d\n", c.Cell_Pos.y);
+        return 1;
+    }
+    else
+    {
+        debugPrint("Cell at pos x not contain an item: %d\n", c.Cell_Pos.x);
+        debugPrint("Cell at pos y not contain an item: %d\n", c.Cell_Pos.y);
+        return 0;
+    }
+}
+
+/******************************************************************************
+* Home Winning Flag check
+******************************************************************************/
+int checkHomeForFlags(Item Flag_Team1, Item Flag_Team2, int team)
+{
+    int counter = 0;
+    int p = 0;
+
+    if (team == 0)
+    {
+        printf("%s\n", "Team 1");
+
+        for (p = 0; p < maze.numOfHomes[0]; p++)
+        {
+            if ((CellContainFlag(HomeList0[p], Flag_Team1) == 1) || (CellContainFlag(HomeList0[p], Flag_Team2) == 1))
+            {
+                printf("Item is at : %d\n", p);
+                counter++;
+            }
+        }
+        if (counter > 1)
+        {
+            printf("%s\n", "Winning Condition");
+            return 1;
+        }
+        else
+        {
+            printf("%s\n", "No Winning Condition");
+            return 0;
+        }
+
+    }
+
+    if (team == 1)
+    {
+        printf("%s\n", "Team 2");
+
+        for (p = 0; p < maze.numOfHomes[1]; p++)
+        {
+            if ((CellContainFlag(HomeList1[p], Flag_Team1) == 1) || (CellContainFlag(HomeList1[p], Flag_Team2) == 1))
+            {
+                counter++;
+            }
+        }
+        if (counter > 1)
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+
+    }
+}
+
+
+/******************************************************************************
 * Check the status of the game
 ******************************************************************************/
 int gameStat()
@@ -711,12 +785,12 @@ int gameStat()
     int p;
     int checker = 0;
 
-	// Not Currently playing
+    // Not Currently playing
     if (gamePlayingFlag == FALSE)
         return -1;
 
-	
-	//return 3; // Team 1 wins
+
+    //return 3; // Team 1 wins
     for (p = 0; p < maze.numOfJails[1]; p++)
     {
         if (JailList1[p].occupied == 1)
@@ -744,7 +818,7 @@ int gameStat()
         return 4;
 
 
-	// Normal
+    // Normal
     return 1;
 }
 
@@ -832,7 +906,7 @@ int pickUpItem(int playerID, Deltas *d)
         return 1;
     }
 
-    // Error 
+    // Error
     return -1;
 }
 
@@ -860,8 +934,8 @@ int resetItem(Deltas *d, Item it, int team)
 
         it.ItemPos.x = NewPos->x;
         it.ItemPos.y = NewPos->y;
-        
-	debugPrint("it.ItemPos.x after: %d\n", it.ItemPos.x);
+
+        debugPrint("it.ItemPos.x after: %d\n", it.ItemPos.x);
         debugPrint("it.ItemPos.y after: %d\n", it.ItemPos.y);
         debugPrint("maze.cells[pos].Cell_Pos.x: %d\n", maze.cells[pos].Cell_Pos.x);
         debugPrint("maze.cells[pos].Cell_Pos.y: %d\n", maze.cells[pos].Cell_Pos.y);
@@ -876,7 +950,7 @@ int resetItem(Deltas *d, Item it, int team)
         add_delta_cell(d, &(maze.cells[pos]), sizeof(Cell));
         add_delta_item(d, &it, sizeof(Item));
 
-	return 1;
+        return 1;
     }
     else if (it.itType = 1) //position at the part of team1
     {
@@ -884,13 +958,12 @@ int resetItem(Deltas *d, Item it, int team)
 
         do
         {
-
             row = (rand() % (dx / 2) + 0);
             col = (rand() % (dy / 2) + 0);
 
             debugPrint("row: %d\n", row);
             debugPrint("col %d\n", col);
-	    debugPrint("dx: %d\n", dx);
+            debugPrint("dx: %d\n", dx);
             debugPrint("dy %d\n", dy);
 
             pos = getPos(col, row);
@@ -924,7 +997,6 @@ int resetItem(Deltas *d, Item it, int team)
             col = (rand()  % dy + (dy / 2));
 
             pos = getPos(col, row);
-
         }
         while (maze.cells[pos].C_Type != CT_Floor);
 
@@ -942,8 +1014,8 @@ int resetItem(Deltas *d, Item it, int team)
         return 1;
     }
 
-	//Error
-        return -1;
+    //Error
+    return -1;
 }
 
 /******************************************************************************
@@ -978,12 +1050,12 @@ int dropItem(int playerID, Deltas *d, Item it)
         return 1;
     }
 
-	// Error
-        return -1;
+    // Error
+    return -1;
 }
 
 /******************************************************************************
-* Break a Wall 
+* Break a Wall
 ******************************************************************************/
 int breakWall(int playerID, int x, int y, Deltas *d)
 {
@@ -996,7 +1068,7 @@ int breakWall(int playerID, int x, int y, Deltas *d)
     pos = getPos(ptr->PlayerPos.y, ptr->PlayerPos.x);
 
     if ( ptr->i == NULL )
-       return -1;
+        return -1;
 
     if ((ptr->i->itType == Shovel) && (maze.cells[pos].C_Type == CT_Wall))
     {
@@ -1016,8 +1088,8 @@ int breakWall(int playerID, int x, int y, Deltas *d)
 
     }
 
-	// Error
-        return -1;
+    // Error
+    return -1;
 }
 
 /******************************************************************************
@@ -1094,11 +1166,11 @@ int addPlayer(int fd, Deltas *d)
 ******************************************************************************/
 int removePlayer (int playerID, Deltas *d)
 {
- 	struct player *newPlayer = NULL;
-	newPlayer = search_in_list(playerID, NULL);
-	
-   if (newPlayer == NULL)
-	return -1;
+    struct player *newPlayer = NULL;
+    newPlayer = search_in_list(playerID, NULL);
+
+    if (newPlayer == NULL)
+        return -1;
 
     Cell temp = cellInfo((newPlayer->PlayerPos.y) + 0, (newPlayer->PlayerPos.x) - 0);
 
@@ -1112,23 +1184,23 @@ int removePlayer (int playerID, Deltas *d)
     else
     {
         debugPrint("\n Delete [player id = %d] - Done. \n", playerID);
-        
-	add_delta_cell(d, &temp, sizeof(Cell));
+
+        add_delta_cell(d, &temp, sizeof(Cell));
 
         return 1;
     }
 }
 
 /******************************************************************************
-* Remove a Player using the fd 
+* Remove a Player using the fd
 ******************************************************************************/
 int removePlayerFD(int fd, Deltas *d)
 {
- 	struct player *newPlayer = NULL;
-	newPlayer = search_in_list_fd(fd, NULL);
-	
-   if (newPlayer == NULL)
-	return -1;
+    struct player *newPlayer = NULL;
+    newPlayer = search_in_list_fd(fd, NULL);
+
+    if (newPlayer == NULL)
+        return -1;
 
     Cell temp = cellInfo((newPlayer->PlayerPos.y) + 0, (newPlayer->PlayerPos.x) - 0);
 
@@ -1142,8 +1214,8 @@ int removePlayerFD(int fd, Deltas *d)
     else
     {
         debugPrint("\n Delete [player fd = %d] - Done. \n", playerID);
-        
-	add_delta_cell(d, &temp, sizeof(Cell));
+
+        add_delta_cell(d, &temp, sizeof(Cell));
 
         return 1;
     }
@@ -1280,32 +1352,35 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
             if ((c == 'U' || c == 'u' || c == '1'))
             {
-                breakWall(playerID, y+1, x, d);
+                breakWall(playerID, y + 1, x, d);
             }
             if ((c == 'D' || c == 'd' || c == '2'))
             {
-                breakWall(playerID, y-1, x, d);
+                breakWall(playerID, y - 1, x, d);
             }
             if ((c == 'L' || c == 'l' || c == '3'))
             {
-                breakWall(playerID, y, x-1, d);
+                breakWall(playerID, y, x - 1, d);
             }
             if ((c == 'R' || c == 'r' || c == '4'))
             {
-                breakWall(playerID, y, x+1, d);
+                breakWall(playerID, y, x + 1, d);
             }
 
             // IDid move check
-            if ( (c == 'U' || c == 'u' || c == '1') && 
-                 tempCell_U.occupied != ptr->team   && 
-                 (tempCell_U.C_Type != CT_Wall && tempCell_U.C_Type != CT_Jailj && tempCell_U.C_Type != CT_JailJ))
+            if ( (c == 'U' || c == 'u' || c == '1') &&
+                    tempCell_U.occupied != ptr->team   &&
+                    (tempCell_U.C_Type != CT_Wall && tempCell_U.C_Type != CT_Jailj && tempCell_U.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.y--;
+
+                /*
                 pickUpItem(playerID, d);
 
-		if (ptr->i != NULL)
-                   if (ptr->i->itType == 3)
-                       dropItem(playerID, d, *(ptr->i));
+                if (ptr->i != NULL)
+                    if (ptr->i->itType == 3)
+                        dropItem(playerID, d, *(ptr->i));
+                */
 
                 tempCell_U.occupied = ptr->team;
 
@@ -1314,19 +1389,22 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 
                 add_delta_player(d, ptr, sizeof(struct player));
                 print_cells_arroud(playerID);
-                return 1; 
+                return 1;
             }
 
-            if ( (c == 'D' || c == 'd' || c == '2') && 
-                 tempCell_D.occupied != ptr->team   && 
-                 (tempCell_D.C_Type != CT_Wall && tempCell_D.C_Type != CT_Jailj && tempCell_D.C_Type != CT_JailJ))
+            if ( (c == 'D' || c == 'd' || c == '2') &&
+                    tempCell_D.occupied != ptr->team   &&
+                    (tempCell_D.C_Type != CT_Wall && tempCell_D.C_Type != CT_Jailj && tempCell_D.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.y++;
+
+                /*
                 pickUpItem(playerID, d);
 
-		if (ptr->i != NULL)
-                   if (ptr->i->itType == 3)
-                       dropItem(playerID, d, *(ptr->i));
+                if (ptr->i != NULL)
+                    if (ptr->i->itType == 3)
+                        dropItem(playerID, d, *(ptr->i));
+                */
 
                 tempCell_D.occupied = ptr->team;
 
@@ -1338,18 +1416,21 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
                 return 1; // move made
             }
 
-            if ( (c == 'L' || c == 'l' || c == '3') && 
-                 tempCell_L.occupied != ptr->team   && 
-                 (tempCell_L.C_Type != CT_Wall && tempCell_L.C_Type != CT_Jailj && tempCell_L.C_Type != CT_JailJ))
+            if ( (c == 'L' || c == 'l' || c == '3') &&
+                    tempCell_L.occupied != ptr->team   &&
+                    (tempCell_L.C_Type != CT_Wall && tempCell_L.C_Type != CT_Jailj && tempCell_L.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.x--;
+
+                /*
                 pickUpItem(playerID, d);
 
-		if (ptr->i != NULL)
-                   if (ptr->i->itType == 3)
-                   {
-                      dropItem(playerID, d, *(ptr->i));
-                   }
+                if (ptr->i != NULL)
+                    if (ptr->i->itType == 3)
+                    {
+                        dropItem(playerID, d, *(ptr->i));
+                    }
+                */
 
                 tempCell_L.occupied = ptr->team;
 
@@ -1361,18 +1442,21 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
                 return 1; // move made
             }
 
-            if ( (c == 'R' || c == 'r' || c == '4') && 
-                 tempCell_R.occupied != ptr->team   && 
-                 (tempCell_R.C_Type != CT_Wall && tempCell_R.C_Type != CT_Jailj && tempCell_R.C_Type != CT_JailJ))
+            if ( (c == 'R' || c == 'r' || c == '4') &&
+                    tempCell_R.occupied != ptr->team   &&
+                    (tempCell_R.C_Type != CT_Wall && tempCell_R.C_Type != CT_Jailj && tempCell_R.C_Type != CT_JailJ))
             {
                 ptr->PlayerPos.x++;
+
+                /*
                 pickUpItem(playerID, d);
 
-		if (ptr->i != NULL)
-                   if (ptr->i->itType == 3)
-                   {
-                       dropItem(playerID, d, *(ptr->i));
-                   }
+                if (ptr->i != NULL)
+                    if (ptr->i->itType == 3)
+                    {
+                        dropItem(playerID, d, *(ptr->i));
+                    }
+                */
 
                 tempCell_R.occupied = ptr->team;
 
@@ -1394,7 +1478,7 @@ int movePlayer (int playerID, Deltas *d, char c)  //['U', 'D', 'L', 'R']
 /******************************************************************************
 * Format Maze for output
 ******************************************************************************/
-void formatMaze(char * mazeOutput)
+void formatMaze(char *mazeOutput)
 {
     int x = (maze.dimensions.y * maze.dimensions.x);
 
@@ -1433,8 +1517,8 @@ void formatMaze(char * mazeOutput)
         {
             debugPrint("\n Search passed [playerID = %d] and checking if she is tagging [playerID = %d]\n", ptr->ID, tempPlayer->ID);
 
-		temp = getPos(ptr->PlayerPos.x, ptr->PlayerPos.y);
-		mazeOutput[temp] = 'P';
+            temp = getPos(ptr->PlayerPos.x, ptr->PlayerPos.y);
+            mazeOutput[temp] = 'P';
         }
     }
 
