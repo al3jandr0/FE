@@ -341,11 +341,15 @@ extern int
 proto_session_rpc(Proto_Session *s)
 {
     int rc;
+    double tic, toc;
 
+    tic = get_time();
     rc = proto_session_send_msg(s, 1);
     if (rc == 1)
     {
         rc = proto_session_rcv_msg(s);
+        toc = get_time();
+        log_RPC_time( toc-tic );
     }
     return rc;
 }

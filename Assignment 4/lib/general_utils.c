@@ -2,6 +2,19 @@
 #include <stdlib.h>
 #include "stdio.h"
 
+double get_time()
+{
+	struct timeval tv;
+	gettimeofday(&tv,NULL);
+	return ((double)(tv.tv_sec + tv.tv_usec*1.0e-6));
+}
+
+int modulus(int a, int b)
+{
+   // a % b = (a%b+b)%b
+   return (a%b+b)%b;
+}
+
 extern int add_delta_player(Deltas *d, void *p, int size)
 {
    d->player_l = list_add( d->player_l, p, size );
@@ -84,5 +97,28 @@ extern int logMaze( char* fmaze, int maze_size, unsigned long long ver )
 
     return 1;
 }
+
+
+extern int log_RPC_time( double diff )
+{
+    char filename[30], strtime[30];
+    FILE *file;
+    int rc;
+
+    file = fopen( "./Mazelog/RPCtime", "a" );
+    if (file == NULL)
+       fprintf(stderr, "@logRPC: ERROR fopen failed");
+    sprintf( &strtime[0], "%F\n", diff );
+    rc = fwrite( strtime, sizeof(char), strlen(strtime), file );
+    if (ferror(file))
+       perror("@logRPC: ERROR when wrtiting to file. ");
+    rc = fclose(file);
+    if (rc != 0)
+       perror("@logRPC: ERROR when closign file file. ");
+
+    return 1;
+}
+
+
 
 

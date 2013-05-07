@@ -306,19 +306,22 @@ do_generic_dummy_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     return rc;
 }
 
-void wait_for_event( unsigned long long cv)
+void wait_for_event( unsigned long long sv)
 {
    // wait until we have recieved the envent update 
    for(;;)
    {
       pthread_mutex_lock(&client_data_mutex);
-      if ( cv > gamedata.game_version  )
+      if ( sv > gamedata.game_version  )
       {
          pthread_mutex_unlock(&client_data_mutex);
          continue;
       }
-      pthread_mutex_unlock(&client_data_mutex);
-      break;
+      else
+      {
+         pthread_mutex_unlock(&client_data_mutex);
+         break;
+      }
    }
 }
 
@@ -523,7 +526,7 @@ do_leave_game_rpc(Proto_Client_Handle ch, Proto_Msg_Types mt)
     if (rc == 1)
     {
         proto_session_hdr_unmarshall(s, &h);
-        wait_for_event(h.sver.raw); // i dont think I need it here
+        //wait_for_event(h.sver.raw); // i dont think I need it here
 
         if (proto_session_body_unmarshall_int(s, 0, &rc) < 0)
             fprintf(stderr, "do_leave_game: proto_session_body_unmarshall_int failed\n");

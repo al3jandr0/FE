@@ -29,7 +29,9 @@ typedef struct
  struct
 */
 
+extern double get_time();
 extern int logMaze( char* fmaze, int maze_size, unsigned long long ver );
+extern int log_RPC_time( double diff );
 
 extern int add_delta_player(Deltas *d, void *p, int size);
 extern int add_delta_cell(Deltas *d, void *p, int size);

@@ -253,8 +253,8 @@ proto_client_event_msg_unmarshall_v1( Proto_Session *s, int blen, unsigned long 
             if (playerdata.id == playerId)
             {
                playerdata.team = (int)playerinfo[0];
-               playerdata.x = (int) (playerinfo[1] % 256);
-               playerdata.y = (int) (playerinfo[2] % 256);
+               playerdata.x = modulus((int)playerinfo[1], 256);
+               playerdata.y = modulus((int)playerinfo[2], 256); 
                playerdata.state = (int)playerinfo[3];
                playerdata.flag = playerinfo[4];
                playerdata.shovel = playerinfo[5];
