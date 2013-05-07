@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 connect localhost 60476
 move D
 move D
@@ -71,3 +72,9 @@ move D
 move U
 move D
 move D
+=======
+connect 1 1
+join
+move D
+move U
+>>>>>>> Fixed some bugs in the tester.

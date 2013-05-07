@@ -12,8 +12,10 @@ if [ $# -lt 4 ] ; then
 
 rm ./runner.txt
 
+echo "Generating the Random moves"
+
 echo "connect $1 $2" > runner.txt
-echo "join"
+echo "join" >> runner.txt
 
 for (( i=1; i<=$4; i++ ))
 do
@@ -37,11 +39,17 @@ fi
 
 done
 
+echo "Generating the Clients"
 
+for (( i=1; i<=$3; i++ ))
+do
+  echo "Client $i is doing his moves."
 while read input
 do echo "$input"
+   echo "Player $i is doing a $input"
    sleep 1
-done < runner.txt | ./client/client $1 $2 
+done < runner.txt | ./client/client $1 $2 &
+done
 
 
 #for (( i=1; i<=$3; i++ ))
