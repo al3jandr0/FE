@@ -67,7 +67,7 @@ extern char get_cell_team(int column, int row);
 extern char get_cell_type(int column, int row);
 extern int get_maze_dimy();
 extern int get_maze_dimx();
-extern void dumpMap();
+extern char * dumpMap();
 extern Maze loadMap();
 
 #endif

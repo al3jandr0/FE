@@ -165,20 +165,22 @@ int currentIndex = 0;
       newCell.C_Type = c;
       newCell.Cell_Pos.x = currentIndex/maze.dimensions.x;
       newCell.Cell_Pos.y = currentIndex%maze.dimensions.y;
+    
       if (newCell.Cell_Pos.y<100){
         newCell.Cell_Team = Team1;
+	if (c=='#'){
+	  newCell.C_Type = 'w';
+	}
       } else {
         newCell.Cell_Team = Team2;
+	if (c=='#'){
+	  newCell.C_Type = 'W';
+	}
       }
+      
       newCell.p=NULL;
       maze.cells[currentIndex] = newCell;
       // *o=NULL;  //FIX FOR ITEMS
-      
-      if (c=='#'){
-        maze.numWall++;
-      }else {
-        maze.numFloor++;
-      }
       
       if (c=='j'){
         maze.numOfJails[0]++;
@@ -189,6 +191,12 @@ int currentIndex = 0;
       }else if(c=='H'){
         maze.numOfHomes[1]++;   
       }
+
+      if (c==' '){
+        maze.numFloor++;
+      } else {
+	maze.numWall++;
+      }
      
       currentIndex++;
     
@@ -198,25 +206,33 @@ int currentIndex = 0;
   fclose(mapFile);
   return maze;
 }
+  
 
 
-
-extern void
+extern char*
 dumpMap() {
+
+  char* fullMap; 
+
   int x = (maze.dimensions.y*maze.dimensions.x);
   int i;
   for (i = 0; i < (x);i++) {
  
     int c =  maze.cells[i].C_Type;
     char print = (char) c;
-    
+
+    fullMap[i] = print;
+    /*    
     if ((i%maze.dimensions.y) == 0){
       printf("\n%c",print);
     }else {
       printf("%c",print);      
     }
+    */
+
   }
   fflush(stdout);
+  return fullMap;
 }
 
 
