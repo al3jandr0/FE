@@ -61,82 +61,67 @@ struct UI_Player_Struct {
 typedef struct UI_Player_Struct UI_Player;
 
 
-/*
-char *loadMap()
+char mazem[40000];
+
+
+
+char *loadMapArray()
 {
+  //  char maze[40000];
   FILE *mapFile;
   if((mapFile = fopen("./../daGame.map", "r"))==NULL) {
     printf("Cannot open file.\n");
-    return maze;
+    return mazem;
   }
-  char *maze;
   int c;
-  //int columnCounter = 0;  
-  // while ((c = fgetc(mapFile)) != 10) {
-    //columnCounter++;
-    //}
-    // maze.dimensions.y = columnCounter;
 
-  // int rowCounter = 1;
-  // char s[columnCounter+2];
-
-  //  while ((fgets(s, columnCounter+2, mapFile)) !=NULL) {
-  // rowCounter++;
-  // }
-  // maze.dimensions.x = rowCounter;
-    
-  rewind(mapFile);    
   
-  // maze.cells = malloc((columnCounter*rowCounter)*sizeof(Cell));
-
+  rewind(mapFile);    
+    
   int currentIndex = 0;
   while ((c = fgetc(mapFile)) != EOF) {
-    if (c!=10) {
+    if(currentIndex == 198) {
+      fprintf(stderr, "here");
+    }
+    if (currentIndex%200!= 0) {
       // newCell.C_Type = c;
       // newCell.Cell_Pos.x = currentIndex/200;
-      int team = currentIndex%200;
-    
-      if (team<100){
-        newCell.Cell_Team = Team1;
-	if (c=='#'){
-	  maze[curre]. 'w';
-	}
-      } else {
-        newCell.Cell_Team = Team2;
-	if (c=='#'){
-	  newCell.C_Type = 'W';
-	}
-      }
-      
-      newCell.p=NULL;
-      maze.cells[currentIndex] = newCell;
-      // *o=NULL;  //FIX FOR ITEMS
-      
-      if (c=='j'){
-        maze.numOfJails[0]++;
-      }else if(c=='J'){
-        maze.numOfJails[1]++;   
-      }else if(c=='h'){
-        maze.numOfHomes[0]++;
-      }else if(c=='H'){
-        maze.numOfHomes[1]++;   
-      }
+      int team = (currentIndex % 200);
+      team =  team %200;
 
-      if (c==' '){
-        maze.numFloor++;
+      mazem[currentIndex] = ' ';
+
+      if (team<100){
+	// newCell.Cell_Team = Team1;
+	if (c=='#'){
+	  mazem[currentIndex] = 'w';
+	}
       } else {
-	maze.numWall++;
+	// newCell.Cell_Team = Team2;
+	if (c=='#'){
+	  mazem[currentIndex] = 'W';
+	}
       }
-     
+      
+      
+      fprintf(stderr, "\ncurrentIndex ==%d\ncurVariable==%d\n\n", currentIndex, mazem[currentIndex]);
       currentIndex++;
-    
+      
     } else{
-   }
-  } 
+      //     if ((c = fgetc(mapFile)) == EOF) break;
+      c = fgetc(mapFile);
+      mazem[currentIndex] = 'w';
+      currentIndex++;
+      //    if (c=='#') mazem[currentIndex] = 'w';
+    }
+  }
+  
   fclose(mapFile);
-  return maze;
+  
+  return mazem;
 }
-  */
+    
+  
 
 SDL_Surface*
 createSurface(int width,int height,const SDL_Surface* display)
@@ -186,10 +171,14 @@ scale_map_frame(UI *ui)
     ui->windowFactor = scale_x;
   }
   
-  SDL_Surface* screenTEMP = SDL_ConvertSurface(ui->screen, ui->screen->format, ui->screen->flags);
+  SDL_Surface* screenTEMP =  createSurface(ui->mapFrame.w,ui->mapFrame.h,ui->screen);
+
+
+ //SDL_ConvertSurface(ui->screen, ui->screen->format, ui->screen->flags);
 
   SDL_BlitSurface(ui->fullMap,&ui->mapFrame, screenTEMP, &ui->mapFrame);
-  SDL_Surface *tmp = zoomSurface(screenTEMP, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
+  SDL_Surface *tmp = createSurface(ui->screen->w,ui->screen->h,ui->screen);
+    tmp = zoomSurface(screenTEMP, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
   if (tmp == (SDL_Surface *) (NULL))
     {
       fprintf(stderr, "\n Error from zoomSurface()\n\n");
@@ -211,7 +200,7 @@ dumpInfo(UI *ui)
 
  fprintf(stderr, "ui->fullMap INFO\n  w--%d\n  h--%d\n  x--%d\n  y--%d\n", ui->fullMap->w, ui->fullMap->h, ui->fullMap->clip_rect.x, ui->fullMap->clip_rect.y);  
 
- fprintf(stderr, "ui window factor -- %d\nui currscale -- %d",(int) &ui->windowFactor,(int) ui->currScale);
+ fprintf(stderr, "ui window factor -- %d\nui currscale -- %d\n",(int) &ui->windowFactor,(int) ui->currScale);
 
 
 }
@@ -690,7 +679,14 @@ sval
 ui_load_map_sdl(UI *ui)
 {
   
-  char map[] ={'W','W','W','W','W','W','W','W','W','W','w','w','w','w','w','w','w','w','w','w',
+  //char *map  =
+  loadMapArray();
+  /*={'W','W','W','W','W','W','W','W','W','W','w','w','w','w','w','w','w','w','w','w',
+    'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
+    'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
+    'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
+    'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
+    'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
@@ -704,16 +700,11 @@ ui_load_map_sdl(UI *ui)
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
 	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','w',
-	       'W','W','W','W','W','W','W','W','W','W','w','w','w','w','w','w','w','w','w','w'};
+	       'W','W','W','W','W','W','W','W','W','W','w','w','w','w','w','w','w','w','w','w'};*/
   
   
-  sval Dx=20;
-  sval Dy=20;
+  sval Dx=200;
+  sval Dy=200;
   sval width = (int)(Dx*ui->tile_w);
   sval height = (int)(Dy*ui->tile_h);
   
@@ -722,7 +713,7 @@ ui_load_map_sdl(UI *ui)
   //= SDL_CreateRGBSurface(SDL_SWSURFACE,width,height,32,0,0,0,0); SDL_Surface;
 
   
-  SDL_Rect t = ui_fill_sdl_surface(ui, ui->fullMap,  map);
+  SDL_Rect t = ui_fill_sdl_surface(ui, ui->fullMap,  mazem);
   
   // ui->currScale = 1.0;
   // dumpInfo(ui);
@@ -781,35 +772,70 @@ ui_process(UI *ui)
 void
 pan(UI *ui, int dx, int dy)
 {
-  if (ui->fullMap->w > ui->mapFrame.w) {
-    ui->mapFrame.x += dx;
-    if (ui->mapFrame.x < 0) {
-       ui->mapFrame.x = 0;
+
+  if (ui->currScale!=1) {
+    if (ui->fullMap->w > ui->mapFrame.w) {
+      ui->mapFrame.x += dx;
+      if (ui->mapFrame.x < 0) {
+	ui->mapFrame.x = 0;
+      }
+      if ( ui->mapFrame.x >= ui->fullMap->w - ui->mapFrame.w) {
+	ui->mapFrame.x = (Sint16) (ui->fullMap->w - ui->mapFrame.w);
+      }
+    } else {
+      ui->mapFrame.x = 0;
     }
-    if ( ui->mapFrame.x >= ui->fullMap->w - ui->mapFrame.w) {
-      ui->mapFrame.x = (Sint16) (ui->fullMap->w - ui->mapFrame.w);
-    }
-  } else {
-    ui->mapFrame.x = 0;
-  }
-  if (ui->fullMap->h > ui->mapFrame.h ) {
-    ui->mapFrame.y += dy;
-    if (ui->mapFrame.y < 0) {
+    if (ui->fullMap->h > ui->mapFrame.h ) {
+      ui->mapFrame.y += dy;
+      if (ui->mapFrame.y < 0) {
+	ui->mapFrame.y = 0;
+      }
+      if (ui->mapFrame.y >= ui->fullMap->h - ui->mapFrame.h) {
+	ui->mapFrame.y = (Sint16) (ui->fullMap->h - ui->mapFrame.h);
+      }
+    } else {
       ui->mapFrame.y = 0;
     }
-    if (ui->mapFrame.y >= ui->fullMap->h - ui->mapFrame.h) {
-      ui->mapFrame.y = (Sint16) (ui->fullMap->h - ui->mapFrame.h);
+  
+    //   = createSurface(ui->screen->flags, width, height,ui->screen);
+    
+    
+    
+  /*SDL_Surface *result
+    
+    SDL_Surface *result = zoomSurface(ui->fullMap, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
+    if (result == (SDL_Surface *) (NULL))
+    {
+    fprintf(stderr, "\n Error from zoomSurface()\n\n");
+    ui_quit(ui);
     }
-  } else {
-    ui->mapFrame.y = 0;
+    
+    ui->scaledMap = result;
+    dumpInfo(ui);
+  */
   }
   
-  //   = createSurface(ui->screen->flags, width, height,ui->screen);
+}
 
+void
+zoomFit(UI *ui)
+{
 
+    ui->currScale= 1;
 
-  /*SDL_Surface *result
+  ui->screenFrame.x = 0;
+  ui->screenFrame.y = 0;
+  // ui->mapFrame.h = ui->fullMap->h;
+  //  ui->mapFrame.w = ;
 
+  double scale_x = (double) (ui->screen->w) / (double) (ui->fullMap->w);
+  double scale_y = (double) (ui->screen->h) / (double) (ui->fullMap->h);
+  if (scale_y < scale_x) {
+    ui->windowFactor = scale_y;
+  } else {
+    ui->windowFactor = scale_x;
+  }
+  
   SDL_Surface *result = zoomSurface(ui->fullMap, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
   if (result == (SDL_Surface *) (NULL))
     {
@@ -818,9 +844,6 @@ pan(UI *ui, int dx, int dy)
     }
   
   ui->scaledMap = result;
-  dumpInfo(ui);
-  */
-
 }
 
 void
@@ -842,15 +865,20 @@ zoom_in(UI *ui)
 void
 zoom_out(UI *ui)
 {
-  
+  if (ui->currScale == 1){
+    
+  }else if( ui->currScale == 2){
+    zoomFit(ui);
+  } else {
+    
   ui->currScale /= ui->zoomFactor;
   
   ui->mapFrame.h = ui->fullMap->h;
   ui->mapFrame.w = ui->fullMap->w;
-  ui->mapFrame.h *= (ui->currScale);
-  ui->mapFrame.w *= (ui->currScale);
+  ui->mapFrame.h /= (ui->currScale);
+  ui->mapFrame.w /= (ui->currScale);
   
-  
+  }
   // scale_map_frame(SDL_Surface *unscaled, SDL_Surface *scaled, )
 
 }
@@ -909,31 +937,7 @@ get_scaled(UI *ui)
   ui->scaledMap = result;
 }
 
-void
-zoomFit(UI *ui)
-{
-  ui->screenFrame.x = 0;
-  ui->screenFrame.y = 0;
-  // ui->mapFrame.h = ui->fullMap->h;
-  //  ui->mapFrame.w = ;
 
-  double scale_x = (double) (ui->screen->w) / (double) (ui->fullMap->w);
-  double scale_y = (double) (ui->screen->h) / (double) (ui->fullMap->h);
-  if (scale_y < scale_x) {
-    ui->windowFactor = scale_y;
-  } else {
-    ui->windowFactor = scale_x;
-  }
-  
-  SDL_Surface *result = zoomSurface(ui->fullMap, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
-  if (result == (SDL_Surface *) (NULL))
-    {
-      fprintf(stderr, "\n Error from zoomSurface()\n\n");
-      ui_quit(ui);
-    }
-  
-  ui->scaledMap = result;
-}
 
 static sval
 ui_process(UI *ui)
@@ -972,7 +976,8 @@ ui_zoom(UI *ui, sval fac)
   if (fac==1){
     zoom_in(ui);
   } else if (fac == -1){
-    zoom_out(ui);
+     zoom_out(ui);
+    // zoomFit(ui); 
   }
   
   fprintf(stderr, "%s:\n", __func__);
@@ -982,21 +987,20 @@ ui_zoom(UI *ui, sval fac)
 extern sval
 ui_pan(UI *ui, sval xdir, sval ydir)
 {
-  int pix = 1;
   if (xdir==1){
-    pan(ui,  pix, 0);
+    pan(ui, (ui->panOffset), 0);
   } else if (xdir == -1){
-    pan(ui,  -pix, 0);
+    pan(ui, -(ui->panOffset), 0);
   } else if (ydir==1){
-    pan(ui, 0, pix);
+    pan(ui, 0 , (ui->panOffset));
   } else if (ydir == -1){
-    pan(ui, 0 , -pix);
+    pan(ui, 0 , -(ui->panOffset));
   }
   
   fprintf(stderr, "%s:\n", __func__);
   return 2;
 }
-
+ 
 extern sval
 ui_move(UI *ui, sval xdir, sval ydir)
 {
@@ -1069,6 +1073,8 @@ ui_init(UI **ui)
 
   (*ui)->currScale = 1.0;
   (*ui)->zoomFactor = 2.0;
+  (*ui)->panOffset = 200.0;
+
   //=(*ui)->tile_h = SPRITE_H;
 }
 
@@ -1181,7 +1187,9 @@ ui_dummy_inc_id(UI *ui)
 void
 ui_paint_curr_pan(UI *ui) 
 {
-    dummyPlayer_paint(ui);
+  ui_fill_sdl_surface(ui, ui->fullMap,  mazem);
+  
+  dummyPlayer_paint(ui);
 
   if (ui->currScale==1) {
     
@@ -1189,8 +1197,8 @@ ui_paint_curr_pan(UI *ui)
     
   } else {
     
-    SDL_Surface *temp = createSurface(ui->mapFrame.w, ui->mapFrame.h, ui->screen);
-    ui_buff_screen(ui->fullMap, temp, &ui->mapFrame, &ui->mapFrame);
+    //    SDL_Surface *temp = createSurface(ui->mapFrame.w, ui->mapFrame.h, ui->screen);
+    // ui_buff_screen(ui->fullMap, temp, &ui->mapFrame, &ui->mapFrame);
     
     //    scale_map_frame(ui, temp , ui->scaledMap);
     scale_map_frame(ui);

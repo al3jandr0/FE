@@ -39,6 +39,7 @@ struct UI_Struct {
   double currScale;
   double windowFactor;
   double zoomFactor;
+  double panOffset;
 
   int32_t depth;
   int32_t tile_h;
