@@ -1,6 +1,5 @@
 
-
-********************************************************************* Tuesday, March 19, 2013
+********************************************************************* Thursday, March 28, 2013
 
 Attendees:
 
@@ -8,26 +7,27 @@ Gurwinder Singh, gsinghny@bu.edu
 Alejandro Pelaez Lechuga apelaez@bu.edu
 Yanyanolsh Olshevskyy yanolsh@bu.edu
 Martinez, Amelia, Lucia mely91@bu.edu
-John Charles Martins jcmartin@bu.edu
+John Charles Martin jcmartin@bu.edu
 
 
 Questions:
 	what are our games features and rules?
 	what information about the game do we need to keep track of at the server and client ?
+	is more than one player allowed on the same cell?
+	what is the winning condition?
 
 Decisions: 
 	defined game specification, features, and rules
 	defiend game strucutes:
-		Cell struct
-		Player Struc
-		Global Struct
-		Maze Struc
-		Position Struct
+		game data
+		maze
+	defined game communication:
+		connect rpc
+		move rpc
+		disconnect rpc
 
 Todo:
 	design code:
-		maze.c
-		maze.h
 		adapt proto_client_server.c & modify proto_client_server.h from Assigment 2
 		adapt proto_client_client.c & modify proto_client_client.h
 		Others files we might need (game logic perhaps)?
@@ -35,13 +35,12 @@ Todo:
 	write code:
 		all files
 
-	decide who is going to write what
 
 	
 
 Comments/Notes:
 
-********************************************************************* Wednesday, March 20, 2013
+********************************************************************* Monday, April 1, 2013
 
 Attendees:
 
@@ -49,151 +48,219 @@ Gurwinder Singh, gsinghny@bu.edu
 Alejandro Pelaez Lechuga apelaez@bu.edu
 Yanyanolsh Olshevskyy yanolsh@bu.edu
 Martinez, Amelia, Lucia mely91@bu.edu
-John Charles Martins jcmartin@bu.edu
+John Charles Martin jcmartin@bu.edu
 
 Questions 
-1. define game specification  -- create a game specification documentation "doc"
+1. define possible problems that may occur during the game
 
-			1. Types of maze cells and states that can be associated with a cell.
-			2. States and attributes that can be associated with each player.
-			3. The set of actions that a player can take.
-			4. For each action define associated rules governing the side affects associated with the action.
+			1. Multiple players in one cell.
+			2. For each action define associated rules governing the side affects associated with the action.
 			5. Conditions and Rules associated with winning the game
 			6. Semantics and Rules for the tags, home bases, and jails and how players interact with each
 
-2. Define Architecture -- Place the 1.5 - 2 page architecture white paper in your doc directory
+2. Architecture 2.0 Appavoo specs-- 
 			1. What roles and function the server and clients will take?
 			2. How will you decompose the software ?
 			3. Are the clients considered trusted?
 
 
-Decisions:CS 451 Assignment 3.  Game Specification
-Home Location - all players on their original side of the border, only �safe� location for respective teams
+Decisions: Game Logic
+Game Specs
 
-Flag - random start location for each side  - have to bring the other teams flag to your side. You can not move or touch your own team flag.  
-Respawns on to original location 
+Game
+When does a game starts ? 
+Need a min of 2 player to start game. 
+Next player added to the ‘other’ team. 
+When should we allow players to join a game? 
+Connect auto joins the current game  
+They can join any game, if the game is at max cap do a connection refuse  
+What happen to the players when the game is over?
+The game resets, which means that all the players from the old game are auto joined into the new game. 
 
-Jail - any player that touch a player on the other team that player goes to jail; to get out of jail we have a free player goes on the jail cell everyone in that jail gets release 
+Players
+All players can occupy the same location
+ Issues: Displaying the player info for many players on the same cell
+Fix: Your player is highlighted to be green
+Issues: Which player picks up item first if multiple players on same item cell
+Fix: First person to do the RPC call gets it; all others will get an error message
+Players cannot move out of the board bounds
+Maximum number of players <= min (total number of home cells, total number of jail cells)
 
-Win - Bring other teams flag to your side, and no players on your side are in jail and on your side of the border
-Other team flags on your side
-All players on your side
-Start checking when the flag is moving 
-All players from one team leave - check on each quit 
+Teams
+There are two teams: Team 1 (RED) & Team 2 (BLUE)
+First player is assigned to RED first, then  the next player is assigned to BLUE, and so on. 
+New players are assigned to the team with the least players. If both teams have the same amount of players, the new player is assigned to Team 1.
 
-Cell
-� �  free cell so movable 
-�#� wall cell so immovable 
-�h�, �H� - spawn point for team
-�j�, �J� - jail cell 
-�f�, �F� - flag
-�p�, �P� - Player
-�i�, �I� - items
+Cells
+There are 7 types of cells
+“ “  - floor cell
+“#” - wall cell
+“h”, “H” - home cell
+“j”, “J” - jail cell
+“f”, “F” - flag
+“p”, “P” - Player
+“s” - shovel
+Adjacent cells are cells above, below, left, and right.
+Diagonal cells are not adjacent
 
-Player 
-Team 
-Current Cell Location (x,y)
-State (jail,  tag, flag (taggable no matter what)) 
-ID
-Items (Power of item) - MAX?
-Special 
-Which side are you on right now
+Home Location 
+Each team has a home location
+Spawning location of players
+Players members cannot enter their opponent's team home
 
-Player Actions 
-JOIN GAME AND SPAWN
-RIGHT
-LEFT
-UP
-DOWN
-DROP ITEM
-USE ITEM
-MANUAL PICK UP
-AUTO FREE
-AUTO TAG
-AUTO MOVE TO JAIL
-AUTO FREE - RESPAWN HOME
+Tagging 
+2 sides RED and BLUE, split evenly based on the map dimensions and home location
+You can only tag the other team on your side of the map. 
+X can only tag Y players on the X side of the map
+Tagging sends the player to the jail on the side they were tagged on.  
+A player gets tagged when he is in the opposite team’s side of the map and he is in the same cell as an opposite team’s member
 
-Perks 
-God Mode - walk through walls
-Untouchable 
+Jail
+Player goes to jail if it gets tagged by an enemy team’s player.
+Tagging happens automatically when the condition mentioned above occurs; the tagging player does not need to execute a “tag” command
+A tagged player is automatically sent to the opposite team’s jail
+Players in jail cannot move away from the jail cells
+Players are freed from jail when an ally player (a player from the same team) that is not in jail moves to a cell adjacent to an opposite team’s jail cell
+When players are freed from jail, they are moved to their team home
+The player that “frees” is not moved back to his team home
+	
+
+Items
+A player can only hold one item
+The flag IS an item
+When a player holding an item is tagged, he drops the item.
+When an item is dropped, it returns to a random location on the side of the map where such item belongs to, and the player is moved to jail
+The random return location cannot be occupied by a player, item, home cell, jail cell, or wall cell
+There are only two items (so far)
+Flag
+Shovel
+
+Flag
+Each team has a flag
+“f” is Team 1’s
+“F” is Team 2’s
+The flags start at random locations within their corresponding teams side of the map
+Players cannot pick up their team’s flag
+Players cannot move to the cell where their team’s flag is on (for displaying purposes)
+A player cannot voluntarily drop the flag
+Flags are always visible (Game version 1.0)
+
+Shovel
+A player holding a shovel can walk through walls
+A player holding a shovel can break “breakable” wall cells; the wall cell becomes a floor cell
+Note: some notes might not be breakable.
+When a player holding a shovel breaks a wall by moving into it
+When a player holding a shovel pickups a flag, he drops the shovel
+Shovels are always visible (Game version 1.0)
 
 
 
-Define Architecture -
+
+Game Ending Conditions
+Tie
+When all players disconnect without meeting the winning condition
+Winning
+Have the enemy’s team flag on your side of the field and no players on your team in the enemy team’s jail and on your side of the field.
+All players on the other team disconnect, as long as the game has started. 
+
+
+
+
+
+Structs
 Server
-Map processing - what cells are what 
-Movements of all players
-Game state 
-Connection - which team 
-Game logic 
-Winning - Blue team wins, red team wins
-
-Client 
-Map printing 
-Who are you color - green 
-Moves 
-
-
-Structures
-Cell struc 
-Enum
-� �  free cell so movable 
-�#� wall cell so immovable 
-�h�, �H� - spawn point for team
-�j�, �J� - jail cell 
-�f�, �F� - flag
-�p�, �P� - Player
-�i�, �I� - items
-position struct
-player
 
 Global Game Struct
-array: player struct
+array: Player* struct (array of all the players)
+“boolean” Global gameStart
+int Game Version (gets updated at game start of a game)
+int Game State Version
+array: Item* (array of all the items “shovels” and “flags”)
+array: int [team1, team2]  (number of players on each team)
 
-Player Struc 
-Team 
-Position struct
-State (jail,  tag, flag (taggable no matter what)) 
-ID
-Items (Power of item) - MAX?
-Special 
-array: number of players [team1, team2]
-array: number in jail [team1, team2]
+Cell struc
+Enum cell Type
+“ “  free cell so movable
+“#” wall cell so immovable
+“h”, “H” - spawn point for team
+“j”, “J” - jail cell
+“p”, “P” - Player
+“i” - items (“i” is a placeholder, the actual character to be used is specified in the item struct)
+Position struct (x,y)
+Breakable? [ Y(es) or N(o) ]
+Player*
+Item*
 
-Player Actions 
-JOIN GAME AND SPAWN
-RIGHT
-LEFT
-UP
-DOWN
-DROP ITEM
-USE ITEM
-MANUAL PICK UP
-AUTO FREE
-AUTO TAG
-AUTO MOVE TO JAIL
-AUTO FREE - RESPAWN HOME
+Player Struc
+int ID ()
+int Team (whose team the player belongs to)
+Position struct (x,y)
+State (Jailed, Tagged, Free)
+*Item
 
-Perks 
-God Mode - walk through walls
-Untouchable 
-
+Item Struc
+enum type
+“f” -  (Team 1 flag)
+“F’’ - (Tram 2 flag)
+‘s’   - (shovel. All players can pick it up)
 Maze Struc
-version No
-numfloor
-numJailCells(x2)
-num
-numwall
-dimensions 
+int numfloor
+int numJailCells(x2)
+int numwall
+int dimensions (int X, int Y)
 array of cells (the actual map)
+Update with code. Code version is probably more complete
 
-position 
-x and y on the maze struc
+Position Struc
+int x
+int y
 
-Load (this is a fucntion not a struct)
-Builds our maze struc 
+Client
+To fully specify all the client structs we might need to explore how to display the map
 
-********************************************************************* Thursday, March 20, 2013
+GameData
+Player id: long int
+Game State Version: unsigned long int
+Game Version: unsigned long int
+
+Maze
+Maze rows: int (maze y dimension)
+Maze columns: int (maze x dimension)
+Maze: Char*
+Communication 
+RPCs
+
+Connect RPC
+Joins game 
+Error cases - can not join due to max capacity 
+Returns player id number or -1 in case of error
+
+Move RPC
+Up, Down, Left, Right
+Returns valid or invalid
+Parameters sent:
+‘U’ - move up
+‘D’ - move down
+‘L’ - move left
+‘R’ - move right
+int ID. player id
+Note on move: Move. When a players move, both the source and destination cell are locked
+
+Disconnect RPC
+Disconnects the player from the game. 
+Removes the player from correct structs. 
+
+
+
+
+Event Channel Message Format
+
+Delta of the map changes (Need to define a good algorithm for this)
+
+[OBJECT][PLAYER][MAP] - FULL STATE
+Should only sent items that change into body, deltas sent via header encoding. 
+
+********************************************************************* Thursday, April 4, 2013
 
 Attendees:
 
@@ -201,27 +268,290 @@ Gurwinder Singh, gsinghny@bu.edu
 Alejandro Pelaez Lechuga apelaez@bu.edu
 Yanyanolsh Olshevskyy yanolsh@bu.edu
 Martinez, Amelia, Lucia mely91@bu.edu
-John Charles Martins jcmartin@bu.edu
+John Charles Martin jcmartin@bu.edu
 
 
 Questions:
-Who does what?
+Address changes after presentation with Appavoo and add them to the game specs. 
 
 Decisions: 
-Gurwinder Singh, gsinghny@bu.edu - client interaction (client.c)
-Alejandro Pelaez Lechuga apelaez@bu.edu - RPC (protocol_*)
-Yanyanolsh Olshevskyy yanolsh@bu.edu - maze strucs
-John Charles Martins jcmartin@bu.edu - load and dump maze data
-Martinez, Amelia, Lucia mely91@bu.edu - writeup
+Create Architecture 3.0 Appavoo specs.
 
 
 
 Todo:
-Gurwinder Singh, gsinghny@bu.edu - client interaction (client.c)
-Alejandro Pelaez Lechuga apelaez@bu.edu - RPC (protocol_*)
-Yanyanolsh Olshevskyy yanolsh@bu.edu - maze strucs
-John Charles Martins jcmartin@bu.edu - load and dump maze data
-Martinez, Amelia, Lucia mely91@bu.edu - writeup
+Game Specs
+
+Game
+When does a game starts ? 
+Need a min of 2 player to start game. 
+Next player added to the ‘other’ team. 
+When should we allow players to join a game? 
+Connect auto joins the current game  
+They can join any game, if the game is at max cap do a connection refuse  
+What happen to the players when the game is over?
+The game resets, which means that all the players from the old game are auto joined into the new game. 
+
+Players
+No two players can occupy the same cell. One cell one player
+All players can occupy the same location
+ Issues: Displaying the player info for many players on the same cell
+Fix: Your player is highlighted to be green
+Issues: Which player picks up item first if multiple players on same item cell
+Fix: First person to do the RPC call gets it; all others will get an error message
+Players cannot move out of the board bounds
+Maximum number of players <= min (total number of home cells, total number of jail cells) -4
+-4. The flags have to be dropped at the home base
+
+Teams
+There are two teams: Team 1 (RED) & Team 2 (BLUE)
+First player is assigned to RED first, then  the next player is assigned to BLUE, and so on. 
+New players are assigned to the team with the least players. If both teams have the same amount of players, the new player is assigned to Team 1.
+
+Cells
+There are 7 types of cells
+“ “  - floor cell
+“#” - wall cell
+“h”, “H” - home cell
+“j”, “J” - jail cell
+“f”, “F” - flag
+“p”, “P” - Player
+“s” - shovel
+Adjacent cells are cells above, below, left, and right.
+Diagonal cells are not adjacent
+
+Home Location 
+Each team has a home location
+Spawning location of players
+Players members cannot enter their opponent's team home
+
+Tagging 
+2 sides RED and BLUE, split evenly based on the map dimensions and home location
+You can only tag the other team on your side of the map. 
+X can only tag Y players on the X side of the map
+Tagging sends the player to the jail on the side they were tagged on.  
+A player gets tagged when he is in the opposite team’s side of the map and he is in the same cell as an opposite team’s member
+
+Jail
+Player goes to jail if it gets tagged by an enemy team’s player.
+Tagging happens automatically when the condition mentioned above occurs; the tagging player does not need to execute a “tag” command
+A tagged player is automatically sent to the opposite team’s jail
+Players in jail cannot move away from the jail cells
+Players are freed from jail when an ally player (a player from the same team) that is not in jail moves to into a cell adjacent to an opposite team’s jail cell
+When players are freed from jail, they are moved to their team home
+When players are freed from jail, they are allow to move out from the jail cells
+The player that “frees” is not moved back to his team home
+	
+
+Items
+A player can only hold one item
+A player can hold 1 flag and/or 1 shovel simultaneously (upto 1 of each but not 2 shovels or 2 flags)
+The flag IS an item
+When a player holding an item is tagged, he drops the item.
+Pickup objects is not automatic, it has to be by action of the player.
+When an item is dropped, it returns to a random location on the side of the map where such item belongs to, and the player is moved to jail
+The random return location cannot be occupied by a player, item, home cell, jail cell, or wall cell
+(objects held by players when they are tagged), if its a shovel, it gets reset to the home position, if it is a flag it just stays where it is.
+There are only two items (so far)
+Flag
+Shovel
+
+Flag
+Each team has a flag
+“f” is Team 1’s
+“F” is Team 2’s
+The flags start at random locations within their corresponding teams side of the map
+Players cannot pick up their team’s flag
+Flags at the start of the game, are undiscovered, and only the server knows where it is.  Once a flag is discovered, its position is published by the server and known to everybody all the time. When a player is 5 cells from a flag it is discovered and it can be seen
+Players cannot move to the cell where their team’s flag is on (for displaying purposes)
+A player cannot voluntarily drop the flag
+Flags are always visible (Game version 1.0)
+
+
+Shovel
+A player holding a shovel can walk through walls
+Each shovel has a home location within a teams’ home base
+A player holding a shovel can break “breakable” wall cells; the wall cell becomes a floor cell
+Shovel cannot break exterior walls / home walls / jail walls.
+When a player holding a shovel breaks a wall by moving into it
+When a player holding a shovel pickups a flag, he drops the shovel
+Shovels are always visible (Game version 1.0)
+he shovel has to be explicitly picked up and dropped (unless tagged or used)
+
+
+
+
+Game Ending Conditions
+Tie
+When all players disconnect without meeting the winning condition
+Winning
+Have the enemy’s team flag on your side of the field and no players on your team in the enemy team’s jail and on your side of the field.
+when - all players of a team are in their home base with both flags in their home base.  The flags have to be dropped into the home base.
+All players on the other team disconnect, as long as the game has started. 
+
+
+
+
+
+
+
+
+
+Structs
+Server
+
+Global Game Struct
+array: Player* struct (array of all the players)
+“boolean” Global gameStart
+int Game Version (gets updated at game start of a game)
+int Game State Version
+array: Item* (array of all the items “shovels” and “flags”)
+array: int [team1, team2]  (number of players on each team)
+array: int  [Number team 1 players on their home, Number team 2 players on their home]
+
+Cell struc
+Enum cell Type
+“ “  free cell so movable
+“#” wall cell so immovable
+“h”, “H” - spawn point for team
+“j”, “J” - jail cell
+“p”, “P” - Player
+“i” - items (“i” is a placeholder, the actual character to be used is specified in the item struct)
+Position struct (x,y)
+Breakable? [ Y(es) or N(o) ]
+Player*
+Item*
+
+Player Struc
+int ID ()
+int Team (whose team the player belongs to)
+Position struct (x,y)
+State (Jailed, Tagged, Free)
+*Item
+
+
+Item Struc
+enum type
+“f” -  (Team 1 flag)
+“F’’ - (Tram 2 flag)
+‘s’   - (shovel. All players can pick it up)
+Position
+
+Maze Struc
+int numfloor
+int numJailCells(x2)
+int numwall
+int dimensions (int X, int Y)
+array of cells (the actual map)
+Update with code. Code version is probably more complete
+
+Position Struc
+int x
+int y
+
+Client
+To fully specify all the client structs we might need to explore how to display the map
+
+GameData
+Player id: long int
+Game State Version: unsigned long int
+Game Version: unsigned long int
+
+Maze
+Maze rows: int (maze y dimension)
+Maze columns: int (maze x dimension)
+Maze: Char*
+
+Communication 
+RPCs
+
+All the Assignment RPCs should remain
+
+Connect RPC
+Joins game 
+Error cases - can not join due to max capacity 
+Returns 
+player id number or -1 in case of error
+int X dimension
+int y dimension
+char* maze or nothing in case of error
+
+Move RPC
+Up, Down, Left, Right
+Returns valid or invalid (1 = valid, -1 = invalid)
+Parameters sent:
+‘U’ - move up
+‘D’ - move down
+‘L’ - move left
+‘R’ - move right
+int ID. player id
+Note on move: Move. When a players move, both the source and destination cell are locked
+
+Pickup RPC
+Player ID
+Returns valid or unvalid 
+Valid = 1, unvalid = -1
+
+Drop RPC
+Player ID
+Item to pick up
+Char ‘f’ or ‘s’
+Returns valid or unvalid 
+Valid = 1, unvalid = -1
+
+Disconnect RPC
+Disconnects the player from the game. 
+Removes the player from correct structs. 
+
+Game Logic calls from RPC
+Connect RPC
+add_player(void)
+Returns Player ID on success, or -1 on failure
+Move RPC
+move(int player_id)
+1 on success, or -1 on failure
+Pickup RPC
+Disconnect RPC
+Milestones
+1 - One player moving (Next Thursday)
+2 - Two players tagging (Next Friday)
+3 - Using items correctly (Next Sunday)
+4 - Game resetting (Next Next Tuesday)
+5 - Everything else (Next Next Friday)
+
+
+Game Logic Coding ---- > GameLogic.c
+
+! Game start function - sets up the game strucs correctly - with correct game version number
+Split the map correctly 
+Connection setup 
+Move validation 
+Current location validation 
+
+
+
+Splitting of Tasks
+Display -- graphics  -- Martin / Amelia
+UI -- Shell x almost done from Assignment 3
+Event Update message (Marshalling unmarshalling)  -- Alejandro
+Game Logic Functions -- Gurwinder / Yan
+
+
+
+
+
+
+
+
+
+Game Logic RPC interface
+
+
+
+
+
+
+
 
 	
 
