@@ -170,7 +170,7 @@ proto_client_event_update_handler(Proto_Session *s)
         // TODO: possible recieve an out of order end game. think of how to deal with that
         gamedata.game_state = h.gstate.v0.raw; 
 
-        logMaze( themaze.maze, themaze.rows*themaze.columns, h.sver.raw );
+        //logMaze( themaze.maze, themaze.rows*themaze.columns, h.sver.raw );
         pthread_mutex_unlock(&client_data_mutex);
         break;
     }
