@@ -1,23 +1,5 @@
 /******************************************************************************
-* Copyright (C) 2011 by Jonathan Appavoo, Boston University
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-* THE SOFTWARE.
+* Game Logic
 ****************************************************************************/
 #ifndef GAMELIB_H
 #define GAMELIB_H
@@ -56,17 +38,6 @@ typedef enum
     Team2 = 2
 } Team;
 
-/*
-typedef struct
-{
-    Team team;
-    Position PlayerPos;
-    int ID;
-    int State;
-    Item *i;
-} Player;
-*/
-
 typedef enum
 {
     None = 0,
@@ -79,7 +50,6 @@ typedef struct
 {
     Item_Type itType;
     Position ItemPos;
-    //int hasAbility;
 } Item;
 
 struct player
@@ -87,6 +57,7 @@ struct player
     int team;
     Position PlayerPos;
     int ID;
+	int FD;
     int State;
     Item *i;
     struct player *next;
@@ -114,21 +85,166 @@ typedef struct
     Position dimensions;
 } Maze;
 
+/*
 int startGame(Deltas *d); // why does it takes deltas. It hsould not. flags should not show up at start_
 int stopGame();
 int resetGame(Deltas *d);
 int gameStat();
 int pickUpItem(int playerID, Deltas *d);
 int dropItem(int playerID, Deltas *d, Item it);
-// int breakWall(int playerID, int x, int y, Deltas *d); // do I need this ? 
+int breakWall(int playerID, int x, int y, Deltas *d);
 int addPlayer(Deltas *d);
 int removePlayer (int playerID, Deltas *d);
-int movePlayer (int playerID, Deltas *d, char c);  //['U', 'D', 'L', 'R']
+int movePlayer (int playerID, Deltas *d, char c);
 void formatMaze(char * mazeOutput);
 int dimX();
 int dimY();
+Position *findFreeHome(int team);
+*/
 
+/******************************************************************************
+* Make Array
+******************************************************************************/
+struct player *create_list(int ID);
 
+/******************************************************************************
+* Add a new Player
+******************************************************************************/
+struct player *add_to_list(int ID, bool add_to_end);
 
+/******************************************************************************
+* Find a Player
+******************************************************************************/
+struct player *search_in_list(int ID, struct player **prev);
+
+/******************************************************************************
+* Find a Player using FD
+******************************************************************************/
+struct player *search_in_list_fd(int fd, struct player **prev);
+
+/******************************************************************************
+* Remove a Player
+******************************************************************************/
+int delete_from_list(int ID);
+
+/******************************************************************************
+* Remove a Player using fd
+******************************************************************************/
+int delete_from_list_fd(int fd);
+
+/******************************************************************************
+* Print Player Array
+******************************************************************************/
+void print_list(void);
+
+/******************************************************************************
+* Location in Maze
+******************************************************************************/
+int getPos(int col, int row);
+
+/******************************************************************************
+* Returns Cell Information
+******************************************************************************/
+Cell cellInfo(int column, int row);
+
+/******************************************************************************
+* Starts the Game 
+******************************************************************************/
+int startGame();
+
+/******************************************************************************
+* Fully Stops the Game 
+******************************************************************************/
+int stopGame();
+
+/******************************************************************************
+* Reset the Game for Next Round 
+******************************************************************************/
+int resetGame(Deltas *d);
+
+/******************************************************************************
+* Load the Map
+******************************************************************************/
+int loadMap();
+
+/******************************************************************************
+* Print map to console
+******************************************************************************/
+void dumpMap();
+
+/******************************************************************************
+* Check the status of the game
+******************************************************************************/
+int gameStat();
+
+/******************************************************************************
+* Find a Free Home cell based on team number
+******************************************************************************/
+Position *findFreeHome(int team);
+
+/******************************************************************************
+* Pick up an Item
+******************************************************************************/
+int pickUpItem(int playerID, Deltas *d);
+
+/******************************************************************************
+* Reset the Items
+******************************************************************************/
+int resetItem(Deltas *d, Item it, int team);
+
+/******************************************************************************
+* Drop the Item
+******************************************************************************/
+int dropItem(int playerID, Deltas *d, Item it);
+
+/******************************************************************************
+* Break a Wall 
+******************************************************************************/
+int breakWall(int playerID, int x, int y, Deltas *d);
+
+/******************************************************************************
+* Add a new Player
+******************************************************************************/
+int addPlayer(int fd, Deltas *d);
+
+/******************************************************************************
+* Remove a Player
+******************************************************************************/
+int removePlayer (int playerID, Deltas *d);
+
+/******************************************************************************
+* Remove a Player using the fd 
+******************************************************************************/
+int removePlayerFD(int fd, Deltas *d);
+
+/******************************************************************************
+* Jail a Player
+******************************************************************************/
+int jailPlayer(struct player *tempPlayer);
+
+/******************************************************************************
+* Tag Checker
+******************************************************************************/
+void tagCheck(struct player *tempPlayer);
+
+/******************************************************************************
+* Move Player
+******************************************************************************/
+int movePlayer (int playerID, Deltas *d, char c);
+
+/******************************************************************************
+* Format Maze for output
+******************************************************************************/
+void formatMaze(char * mazeOutput);
+
+/******************************************************************************
+* Return x dimensions
+******************************************************************************/
+int dimX();
+
+/******************************************************************************
+* Return y dimensions
+******************************************************************************/
+int dimY();
 
 #endif
