@@ -1,4 +1,4 @@
-Specification:     /20
+Specification:   18/20
 Architecture:    18/20
 Presentation:    10/10
 Code:            10/12
