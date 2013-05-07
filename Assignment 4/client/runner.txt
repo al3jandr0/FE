@@ -1,7 +1,0 @@
-connect localhost 48164
-move U
-move U
-move R
-move R
-move U
-move U
