@@ -35,7 +35,7 @@ Todo:
 		all files
 
 
-	
+
 
 Comments/Notes:
 
@@ -122,7 +122,7 @@ Players in jail cannot move away from the jail cells
 Players are freed from jail when an ally player (a player from the same team) that is not in jail moves to a cell adjacent to an opposite team’s jail cell
 When players are freed from jail, they are moved to their team home
 The player that “frees” is not moved back to his team home
-	
+
 
 Items
 A player can only hold one item
@@ -249,9 +249,9 @@ Disconnect RPC
 Disconnects the player from the game. 
 Removes the player from correct structs. 
 
-
 
-
+
+
 Event Channel Message Format
 
 Delta of the map changes (Need to define a good algorithm for this)
@@ -259,7 +259,7 @@ Delta of the map changes (Need to define a good algorithm for this)
 [OBJECT][PLAYER][MAP] - FULL STATE
 Should only sent items that change into body, deltas sent via header encoding. 
 
-********************************************************************* Thursday, April 4, 2013
+********************************************************************* Thursday, April 2, 2013
 
 Attendees:
 
@@ -340,7 +340,7 @@ Players are freed from jail when an ally player (a player from the same team) th
 When players are freed from jail, they are moved to their team home
 When players are freed from jail, they are allow to move out from the jail cells
 The player that “frees” is not moved back to his team home
-	
+
 
 Items
 A player can only hold one item
@@ -517,7 +517,7 @@ Milestones
 3 - Using items correctly (Next Sunday)
 4 - Game resetting (Next Next Tuesday)
 5 - Everything else (Next Next Friday)
-
+
 
 Game Logic Coding ---- > GameLogic.c
 
@@ -536,15 +536,113 @@ Event Update message (Marshalling unmarshalling)  -- Alejandro
 Game Logic Functions -- Gurwinder / Yan
 
 
-
+
+
+
+
+
+
+
 Game Logic RPC interface
 
 
-
 
 
 
-	
+
+
+
+
 
 Comments/Notes:
 
+
+********************************************************************* Thursday, April 4, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martin jcmartin@bu.edu
+
+
+Questions:
+	Adapt architecture 2.0 with Appavvo specs.
+		See what is unnecessary for the game and what must be updated.
+	Who will be doing what?
+		Split up work
+
+
+Decisions: 
+	Milestones
+		1 - One player moving (Next Thursday)
+		2 - Two players tagging (Next Friday)
+		3 - Using items correctly (Next Sunday)
+		4 - Game resetting (Next Next Tuesday)
+		5 - Everything else (Next Next Friday)
+
+	Game Logic Coding ---- > GameLogic.c
+		! Game start function - sets up the game strucs correctly - with correct game version number
+		Split the map correctly 
+		Connection setup 
+		Move validation 
+		Current location validation 
+
+	Splitting of Tasks
+		Display -- graphics  -- John / Amelia
+		UI -- Shell x almost done from Assignment 3
+		Event Update message (Marshalling unmarshalling)  -- Alejandro
+		Game Logic Functions -- Gurwinder / Yan
+
+	Event Channel Message Format
+		Delta of the map changes (Need to define a good algorithm for this)
+		[OBJECT][PLAYER][MAP] - FULL STATE
+		Should only sent items that change into body, deltas sent via header encoding. 
+
+Todo:
+	Each team member must start writing code for their parts 
+
+
+	write code:
+		all files
+
+
+
+
+Comments/Notes:
+
+
+
+********************************************************************* Tuesday, April 16, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martin jcmartin@bu.edu
+
+
+Questions:
+	Discuss progress of work
+	Merge code updates
+
+
+Decisions: 
+	Coding questions were addressed and looked at
+	Merged updates of each team member's parts
+
+Todo:
+	Keep working on assigned parts
+
+
+	write code:
+		all files
+
+
+
+
+Comments/Notes:
