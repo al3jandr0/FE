@@ -423,7 +423,7 @@ Position *findFreeHome(int team)
     {
         printf("%s\n", "Team 0");
         
-        for (p = 2; p < maze.numOfHomes[0]; p++)
+        for (p = 0; p < maze.numOfHomes[0]; p++)
         {
             if (HomeList0[p].occupied != 1)
             {
@@ -436,7 +436,7 @@ Position *findFreeHome(int team)
             }
         }
     }
-    if (team == 1)
+    if (team == 2)
     {
        
         for (p = 0; p < maze.numOfHomes[1]; p++)
@@ -504,11 +504,14 @@ int pickUpItem(int playerID/* Deltas *d */)
             ptr->i=itPtr;
         
                 
-        maze.cells[pos].containItem = FALSE;/*
+        maze.cells[pos].containItem = FALSE;
+        
+        /*
         add_delta_player(d, playerArray[playerID], sizeof(Player));
         add_delta_cell(d, Cell, sizeof(Cell));
         add_delta_item(d, item, sizeof(item));
                              */
+        printf("Player picked up the item: %d\n", itPtr);
         return 1;
     }
     else
@@ -715,29 +718,162 @@ int breakWall(int playerID,int x, int y/*, Deltas *d*/)
         return -1;
     }
 }
-
-
-int main(void)
+int CellContainFlag(Cell c, Item it)
 {
+    if(/*(c.containItem==TRUE)&&*/(c.Cell_Pos.x==it.ItemPos.x)&&(c.Cell_Pos.y==it.ItemPos.y)){
+             printf("Cell at pos x has item: %d\n", c.Cell_Pos.x);
+            printf("Cell at pos y has item: %d\n", c.Cell_Pos.y);
+
+        return 1;
+    }else{
+       // printf("Cell at pos x not contain an item: %d\n", c.Cell_Pos.x);
+       // printf("Cell at pos y not contain an item: %d\n", c.Cell_Pos.y);
+        return 0;
+    }
+}
+
+
+int checkHomeForFlags(Item Flag_Team1, Item Flag_Team2, int team){
     
+    
+   int counter=0;
+    
+        int p = 0;
+        
+    
+    
+        
+        if (team == 0)
+        {
+            printf("%s\n", "Team 1");
+            
+            for (p = 0; p < maze.numOfHomes[0]; p++)
+            {
+               if((CellContainFlag(HomeList0[p], Flag_Team1)==1) || (CellContainFlag(HomeList0[p], Flag_Team2)==1))
+               {
+                   printf("Item is at : %d\n", p);
+                   counter++;
+                   
+               }
+              
+               
+               
+            }
+            if(counter>1){
+                 printf("%s\n","Winning Condition");
+                return 1;
+            }
+            else
+            {
+                printf("%s\n","No Winning Condition");
+                return 0;
+            }
+            
+        }
    
     
-    Item testIt;
+    
+    if (team == 1)
+    {
+        printf("%s\n", "Team 2");
+        
+        for (p = 0; p < maze.numOfHomes[1]; p++)
+        {
+            if((CellContainFlag(HomeList1[p], Flag_Team1)==1) || (CellContainFlag(HomeList1[p], Flag_Team2)==1))
+            {
+                counter++;
+                
+            }
+            
+            
+            
+        }
+        if(counter>1){
+           
+            return 1;
+        }
+        else
+            
+
+        {
+            return 0;
+        }
+        
+    }
+
+    
+}       /*
+                   if (HomeList0[p].containItem ==TRUE)
+                    {
+                   
+                        HomeList0[p].Cell
+                        
+                    
+                    newPos->x = HomeList0[p].Cell_Pos.x;
+                    newPos->y = HomeList0[p].Cell_Pos.y;
+                    HomeList0[p].occupied = 1;
+                    printf("Free Location for team %d found at %d, %d\n", team, newPos->x, newPos->y);
+                    return newPos;
+                    //break;
+                }
+            }
+        }
+        if (team == 2)
+        {
+            
+            for (p = 0; p < maze.numOfHomes[1]; p++)
+            {
+                if (HomeList1[p].occupied != 1)
+                {
+                    newPos->x = HomeList1[p].Cell_Pos.x;
+                    newPos->y = HomeList1[p].Cell_Pos.y;
+                    HomeList1[p].occupied = 1;
+                    
+                    return newPos;
+                    //break;
+                }
+            }
+        }
+    }
+    
+
+*/
+
+int main(void)
+{  /* Item it1,it2;
+    startGame();
+    it1.itType=Flag_Team1;
+    it2.itType=Flag_Team2;
+    it1.ItemPos.x=HomeList0[10].Cell_Pos.x;
+    it1.ItemPos.y=HomeList0[10].Cell_Pos.y;
+    HomeList0[10].containItem=TRUE;
+    
+    it2.ItemPos.x=HomeList0[20].Cell_Pos.x;
+    it2.ItemPos.y=HomeList0[20].Cell_Pos.y;
+    HomeList0[20].containItem=TRUE;
+    
+    checkHomeForFlags(it1, it2, 0);
+
+    
+   // create_list(1);
+  //  findFreeHome(0);
+  // player ptr=search_in_list(1, NULL);
+   // Item testIt=Flag_Team1;
      
     
 
    
-    startGame();
-//dumpMap();
-    testIt.itType=Flag_Team1;
-    
-    
-    
-    testIt.ItemPos.x=0;
-    testIt.ItemPos.y=0;
-resetItem(testIt, 1);
-    
   
+//dumpMap();
+    //testIt.itType=Flag_Team1;
+    
+    
+    
+   // testIt.ItemPos.x=0;
+   // testIt.ItemPos.y=0;
+//resetItem(testIt, 1);
+    
+ */ 
 }
 
 
