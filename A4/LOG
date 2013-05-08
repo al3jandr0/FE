@@ -1,0 +1,229 @@
+
+
+********************************************************************* Tuesday, March 19, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martins jcmartin@bu.edu
+
+
+Questions:
+	what are our games features and rules?
+	what information about the game do we need to keep track of at the server and client ?
+
+Decisions: 
+	defined game specification, features, and rules
+	defiend game strucutes:
+		Cell struct
+		Player Struc
+		Global Struct
+		Maze Struc
+		Position Struct
+
+Todo:
+	design code:
+		maze.c
+		maze.h
+		adapt proto_client_server.c & modify proto_client_server.h from Assigment 2
+		adapt proto_client_client.c & modify proto_client_client.h
+		Others files we might need (game logic perhaps)?
+
+	write code:
+		all files
+
+	decide who is going to write what
+
+	
+
+Comments/Notes:
+
+********************************************************************* Wednesday, March 20, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martins jcmartin@bu.edu
+
+Questions 
+1. define game specification  -- create a game specification documentation "doc"
+
+			1. Types of maze cells and states that can be associated with a cell.
+			2. States and attributes that can be associated with each player.
+			3. The set of actions that a player can take.
+			4. For each action define associated rules governing the side affects associated with the action.
+			5. Conditions and Rules associated with winning the game
+			6. Semantics and Rules for the tags, home bases, and jails and how players interact with each
+
+2. Define Architecture -- Place the 1.5 - 2 page architecture white paper in your doc directory
+			1. What roles and function the server and clients will take?
+			2. How will you decompose the software ?
+			3. Are the clients considered trusted?
+
+
+Decisions:CS 451 Assignment 3.  Game Specification
+Home Location - all players on their original side of the border, only “safe” location for respective teams
+
+Flag - random start location for each side  - have to bring the other teams flag to your side. You can not move or touch your own team flag.  
+Respawns on to original location 
+
+Jail - any player that touch a player on the other team that player goes to jail; to get out of jail we have a free player goes on the jail cell everyone in that jail gets release 
+
+Win - Bring other teams flag to your side, and no players on your side are in jail and on your side of the border
+Other team flags on your side
+All players on your side
+Start checking when the flag is moving 
+All players from one team leave - check on each quit 
+
+Cell
+“ “  free cell so movable 
+“#” wall cell so immovable 
+“h”, “H” - spawn point for team
+“j”, “J” - jail cell 
+“f”, “F” - flag
+“p”, “P” - Player
+“i”, “I” - items
+
+Player 
+Team 
+Current Cell Location (x,y)
+State (jail,  tag, flag (taggable no matter what)) 
+ID
+Items (Power of item) - MAX?
+Special 
+Which side are you on right now
+
+Player Actions 
+JOIN GAME AND SPAWN
+RIGHT
+LEFT
+UP
+DOWN
+DROP ITEM
+USE ITEM
+MANUAL PICK UP
+AUTO FREE
+AUTO TAG
+AUTO MOVE TO JAIL
+AUTO FREE - RESPAWN HOME
+
+Perks 
+God Mode - walk through walls
+Untouchable 
+
+
+
+Define Architecture -
+Server
+Map processing - what cells are what 
+Movements of all players
+Game state 
+Connection - which team 
+Game logic 
+Winning - Blue team wins, red team wins
+
+Client 
+Map printing 
+Who are you color - green 
+Moves 
+
+
+Structures
+Cell struc 
+Enum
+“ “  free cell so movable 
+“#” wall cell so immovable 
+“h”, “H” - spawn point for team
+“j”, “J” - jail cell 
+“f”, “F” - flag
+“p”, “P” - Player
+“i”, “I” - items
+position struct
+player
+
+Global Game Struct
+array: player struct
+
+Player Struc 
+Team 
+Position struct
+State (jail,  tag, flag (taggable no matter what)) 
+ID
+Items (Power of item) - MAX?
+Special 
+array: number of players [team1, team2]
+array: number in jail [team1, team2]
+
+Player Actions 
+JOIN GAME AND SPAWN
+RIGHT
+LEFT
+UP
+DOWN
+DROP ITEM
+USE ITEM
+MANUAL PICK UP
+AUTO FREE
+AUTO TAG
+AUTO MOVE TO JAIL
+AUTO FREE - RESPAWN HOME
+
+Perks 
+God Mode - walk through walls
+Untouchable 
+
+Maze Struc
+version No
+numfloor
+numJailCells(x2)
+num
+numwall
+dimensions 
+array of cells (the actual map)
+
+position 
+x and y on the maze struc
+
+Load (this is a fucntion not a struct)
+Builds our maze struc 
+
+********************************************************************* Thursday, March 20, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martins jcmartin@bu.edu
+
+
+Questions:
+Who does what?
+
+Decisions: 
+Gurwinder Singh, gsinghny@bu.edu - client interaction (client.c)
+Alejandro Pelaez Lechuga apelaez@bu.edu - RPC (protocol_*)
+Yanyanolsh Olshevskyy yanolsh@bu.edu - maze strucs
+John Charles Martins jcmartin@bu.edu - load and dump maze data
+Martinez, Amelia, Lucia mely91@bu.edu - writeup
+
+
+
+Todo:
+Gurwinder Singh, gsinghny@bu.edu - client interaction (client.c)
+Alejandro Pelaez Lechuga apelaez@bu.edu - RPC (protocol_*)
+Yanyanolsh Olshevskyy yanolsh@bu.edu - maze strucs
+John Charles Martins jcmartin@bu.edu - load and dump maze data
+Martinez, Amelia, Lucia mely91@bu.edu - writeup
+
+	
+
+Comments/Notes:
+
