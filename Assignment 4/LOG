@@ -635,6 +635,42 @@ Decisions:
 	Coding questions were addressed and looked at
 	Merged updates of each team member's parts
 
+int gameStart()
+return Win Team 2 [4]
+return Win Team 1 [3]
+return Draw [2]
+return Started [1]
+return Not Started [0]
+
+int gameStop()
+
+int addPlayer (Deltas *d)
+returns playerID
+
+int removePlayer (int playerID, Deltas *d)
+
+int movePlayer (int playerID, Deltas *d, char ['U', 'D', 'L', 'R'])
+
+int pickUpItem (int playerID, Deltas *d)
+
+int breakWall (int x, int y, Deltas *d)
+
+int resetItem(Deltas *d, char ['F','S'])
+
+int resetItem(Deltas *d, char ['F','S'])
+
+int dropItem(int playerID, Deltas *d, char ['F', 'S']) 
+
+char * formatMaze()
+
+int dimX()
+
+int dimY()
+
+int gameStatus()
+
+
+
 Todo:
 	Keep working on assigned parts
 
@@ -646,3 +682,131 @@ Todo:
 
 
 Comments/Notes:
+
+
+
+********************************************************************* Friday, May 3, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martin jcmartin@bu.edu
+
+
+Questions:
+	Discuss progress of work
+	Merge code updates
+
+
+Decisions: 
+	Coding questions were addressed and looked at
+	Merged updates of each team member's parts
+	Tried to get codes working to be able to start merging
+
+
+
+
+
+Todo:
+	Be able to have a running code by the end of the weekend.
+
+
+	write code:
+		all files
+
+
+
+
+Comments/Notes:
+
+
+********************************************************************* Monday, May 6, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martin jcmartin@bu.edu
+
+
+Questions:
+	What things are needed to finish a working code?
+	What codes are not finished and need work on?
+	Make a printable poster by the end of the day
+
+	Posters: Please be sure to include at a minimum
+		1) Your final spec
+		2) Your architecture
+		3) Description of your final product/status
+		4) Testing results any performance and functionality data you have (including things you know fail)
+		5) Observations and comments
+		BTW including some of the stats, graphs and network diagrams from your github repo are nice addition.
+
+
+Decisions: 
+	Everyone progressed their codes, trying to finalize a working code
+
+
+
+
+
+Todo:
+	Have a running code by the end of tonight
+
+
+	write code:
+		all files
+
+
+
+
+Comments/Notes:
+
+
+
+********************************************************************* Tuesday, May 7, 2013
+
+Attendees:
+
+Gurwinder Singh, gsinghny@bu.edu 
+Alejandro Pelaez Lechuga apelaez@bu.edu
+Yanyanolsh Olshevskyy yanolsh@bu.edu
+Martinez, Amelia, Lucia mely91@bu.edu
+John Charles Martin jcmartin@bu.edu
+
+
+Questions:
+	What things are needed to finish a working code?
+	What codes are not finished and need work on?
+	Make a printable poster by 4pm
+
+	Posters: Please be sure to include at a minimum
+		1) Your final spec
+		2) Your architecture
+		3) Description of your final product/status
+		4) Testing results any performance and functionality data you have (including things you know fail)
+		5) Observations and comments
+		BTW including some of the stats, graphs and network diagrams from your github repo are nice addition.
+
+
+Decisions: 
+	Made a partial poster and will have more details by the presentation tomorrow
+	Game logic functions and Event Update message (Marshalling unmarshalling) are working.
+	The UI code is working but has minor specs to fix. 
+	Working code has been tested. 
+
+
+
+
+
+Todo:
+	Have everything in place and working for tomorrow.
+
+
+	write code:
+		all files
