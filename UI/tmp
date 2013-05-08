@@ -1,0 +1,12 @@
+make -C lib
+make[1]: Entering directory `/root/CS451/Repo/FE/FE/Assignment 3/lib'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/root/CS451/Repo/FE/FE/Assignment 3/lib'
+make -C server
+make[1]: Entering directory `/root/CS451/Repo/FE/FE/Assignment 3/server'
+make[1]: Nothing to be done for `all'.
+make[1]: Leaving directory `/root/CS451/Repo/FE/FE/Assignment 3/server'
+make -C client
+make[1]: Entering directory `/root/CS451/Repo/FE/FE/Assignment 3/client'
+cc -g    -c -o client.o client.c
+make[1]: Leaving directory `/root/CS451/Repo/FE/FE/Assignment 3/client'
