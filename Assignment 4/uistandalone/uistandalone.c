@@ -104,7 +104,7 @@ char *loadMapArray()
       }
       
       
-      fprintf(stderr, "\ncurrentIndex ==%d\ncurVariable==%d\n\n", currentIndex, mazem[currentIndex]);
+      //  fprintf(stderr, "\ncurrentIndex ==%d\ncurVariable==%d\n\n", currentIndex, mazem[currentIndex]);
       currentIndex++;
       
     } else{
@@ -176,7 +176,20 @@ scale_map_frame(UI *ui)
 
  //SDL_ConvertSurface(ui->screen, ui->screen->format, ui->screen->flags);
 
+  int x,y,w,h;
+  x = ui->mapFrame.x;
+  y = ui->mapFrame.y;
+  w = ui->mapFrame.w;
+  h = ui->mapFrame.h;
+
+
   SDL_BlitSurface(ui->fullMap,&ui->mapFrame, screenTEMP, &ui->mapFrame);
+
+  ui->mapFrame.x=x;
+  ui->mapFrame.y=y;
+  ui->mapFrame.w=w;
+  ui->mapFrame.h=h;
+  
   SDL_Surface *tmp = createSurface(ui->screen->w,ui->screen->h,ui->screen);
     tmp = zoomSurface(screenTEMP, ui->windowFactor,  ui->windowFactor, SMOOTHING_ON);
   if (tmp == (SDL_Surface *) (NULL))
@@ -200,7 +213,11 @@ dumpInfo(UI *ui)
 
  fprintf(stderr, "ui->fullMap INFO\n  w--%d\n  h--%d\n  x--%d\n  y--%d\n", ui->fullMap->w, ui->fullMap->h, ui->fullMap->clip_rect.x, ui->fullMap->clip_rect.y);  
 
+ fprintf(stderr, "ui->mapFrame INFO\n  w--%d\n  h--%d\n  x--%d\n  y--%d\n", ui->mapFrame.w, ui->mapFrame.h, ui->mapFrame.x, ui->mapFrame.y);  
+
  fprintf(stderr, "ui window factor -- %d\nui currscale -- %d\n",(int) &ui->windowFactor,(int) ui->currScale);
+
+
 
 
 }
@@ -780,7 +797,7 @@ pan(UI *ui, int dx, int dy)
 	ui->mapFrame.x = 0;
       }
       if ( ui->mapFrame.x >= ui->fullMap->w - ui->mapFrame.w) {
-	ui->mapFrame.x = (Sint16) (ui->fullMap->w - ui->mapFrame.w);
+	ui->mapFrame.x = (ui->fullMap->w - ui->mapFrame.w);
       }
     } else {
       ui->mapFrame.x = 0;
@@ -791,7 +808,9 @@ pan(UI *ui, int dx, int dy)
 	ui->mapFrame.y = 0;
       }
       if (ui->mapFrame.y >= ui->fullMap->h - ui->mapFrame.h) {
-	ui->mapFrame.y = (Sint16) (ui->fullMap->h - ui->mapFrame.h);
+	ui->mapFrame.y = (ui->fullMap->h - ui->mapFrame.h);
+
+	//	ui->mapFrame.y = (Sint16) (ui->fullMap->h - ui->mapFrame.h);
       }
     } else {
       ui->mapFrame.y = 0;
@@ -1187,29 +1206,32 @@ ui_dummy_inc_id(UI *ui)
 void
 ui_paint_curr_pan(UI *ui) 
 {
+  dumpInfo(ui);
   ui_fill_sdl_surface(ui, ui->fullMap,  mazem);
-  
+  dumpInfo(ui);
   dummyPlayer_paint(ui);
+  dumpInfo(ui);
 
   if (ui->currScale==1) {
     
     zoomFit(ui);
     
   } else {
-    
+
     //    SDL_Surface *temp = createSurface(ui->mapFrame.w, ui->mapFrame.h, ui->screen);
     // ui_buff_screen(ui->fullMap, temp, &ui->mapFrame, &ui->mapFrame);
     
     //    scale_map_frame(ui, temp , ui->scaledMap);
     scale_map_frame(ui);
+  dumpInfo(ui);
 
   }
   
-  
+
   ui_buff_screen(ui->scaledMap, ui->screen, &ui->screenFrame, &ui->screenFrame);
   
-  
+
   SDL_UpdateRect(ui->screen, 0, 0, ui->screen->w, ui->screen->h);
-  
+
 }
 
