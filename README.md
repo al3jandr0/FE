@@ -20,7 +20,7 @@
     <td><del>Matthew Lee</del</td><td><del>matt2lee@bu.edu</del></td>
   </tr>
   <tr>
-    <td>Alejandro Pelaez Lechuga</td><td>apelaez@bu.edu</td>
+    <td>Alejandro Pelaez Lechuga</td>
   </tr>
   <tr>
     <td>Amelia Martinez</td><td>mely91@bu.edu</td>
