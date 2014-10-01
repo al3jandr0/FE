@@ -5,7 +5,7 @@
 Attendees:
 
 Gurwinder Singh, gsinghny@bu.edu 
-Alejandro Pelaez Lechuga apelaez@bu.edu
+Alejandro Pelaez Lechuga
 Yanyanolsh Olshevskyy yanolsh@bu.edu
 Martinez, Amelia, Lucia mely91@bu.edu
 John Charles Martins jcmartin@bu.edu
@@ -68,7 +68,7 @@ Questions
 
 
 Decisions:CS 451 Assignment 3.  Game Specification
-Home Location - all players on their original side of the border, only “safe” location for respective teams
+Home Location - all players on their original side of the border, only √ísafe√ì location for respective teams
 
 Flag - random start location for each side  - have to bring the other teams flag to your side. You can not move or touch your own team flag.  
 Respawns on to original location 
@@ -82,13 +82,13 @@ Start checking when the flag is moving
 All players from one team leave - check on each quit 
 
 Cell
-“ “  free cell so movable 
-“#” wall cell so immovable 
-“h”, “H” - spawn point for team
-“j”, “J” - jail cell 
-“f”, “F” - flag
-“p”, “P” - Player
-“i”, “I” - items
+√í √í  free cell so movable 
+√í#√ì wall cell so immovable 
+√íh√ì, √íH√ì - spawn point for team
+√íj√ì, √íJ√ì - jail cell 
+√íf√ì, √íF√ì - flag
+√íp√ì, √íP√ì - Player
+√íi√ì, √íI√ì - items
 
 Player 
 Team 
@@ -137,13 +137,13 @@ Moves
 Structures
 Cell struc 
 Enum
-“ “  free cell so movable 
-“#” wall cell so immovable 
-“h”, “H” - spawn point for team
-“j”, “J” - jail cell 
-“f”, “F” - flag
-“p”, “P” - Player
-“i”, “I” - items
+√í √í  free cell so movable 
+√í#√ì wall cell so immovable 
+√íh√ì, √íH√ì - spawn point for team
+√íj√ì, √íJ√ì - jail cell 
+√íf√ì, √íF√ì - flag
+√íp√ì, √íP√ì - Player
+√íi√ì, √íI√ì - items
 position struct
 player
 
